@@ -1,0 +1,78 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.AtrzFormVO;
+import kr.or.ddit.vo.AtrzPathVO;
+import kr.or.ddit.vo.DraftRefVO;
+import kr.or.ddit.vo.DraftVO;
+
+public interface IAuthService {
+	//결재양식 모두 select
+	public List<AtrzFormVO> selectAtrzForm();
+
+	public AtrzFormVO selectAtrzContent(String atrzfCd);
+	//임시저장
+	public ServiceResult draftTempSaveInsert(DraftVO draftVO);
+	//결재자(결재선)
+	public ServiceResult pathInsert(AtrzPathVO pathVO);
+	//참조자
+	public ServiceResult refInsert(DraftRefVO refVO);
+	
+	//임시저장인 문서
+	public List<DraftVO> selectTempSaveList(String empNo);
+	//임시저장문서 디테일 
+	public DraftVO tempSaveDetail(DraftVO draftVO);
+	public List<AtrzPathVO> pathSelect(String drftCd);
+	public List<DraftRefVO> refSelect(String drftCd);
+	//임시저장 삭제
+	public ServiceResult tempSaveDelete(String drftCd);
+	//임시저장 ->결재상신
+	public ServiceResult approval(DraftVO draftVO);
+	//기안서작성 -> 결재상신
+	public ServiceResult dfApproval(DraftVO draftVO);
+
+	//기안 > 진행중문서함
+	public List<DraftVO> selectProgList(String empNo);
+	//진행중 디테일
+	public DraftVO progDetail(DraftVO draftVO);
+	
+	//기안 >반려문서함
+	public List<DraftVO> selectRetList(String empNo);
+	public DraftVO retDetail(DraftVO draftVO);
+
+	//기안 > 완료문서함
+	public List<DraftVO> selectComList(String empNo);
+	public DraftVO comDetail(DraftVO draftVO);
+	
+	//참조자, 결재자 삭제
+	public void refDelete(String drftCd);
+	public void authPathDelete(String drftCd);
+
+	
+	//////////////////////////////////////////////////////////////////////////////////////
+	
+	//결재함 > 결재대기 문서
+	public List<DraftVO> selectWaitList(String empNo);
+	public DraftVO waitDetail(DraftVO draftVO);
+	//결재함 > 참조문서
+	public List<DraftVO> selectRefList(String empNo);
+	public DraftVO refDetail(DraftVO draftVO);
+
+
+	/////////////////////////////////////////////////////////////////////////////////
+
+	// 기안문서 양식 수정	
+	public ServiceResult updateupdateAtrzForm(AtrzFormVO atrzFormVO);
+	// 기안 문서 양식폼 생성
+	public ServiceResult createAtrzf(AtrzFormVO atrzFormVO);
+	// 기안 문서 양식폼 삭제
+	public int deleteAtrzfForm(Map<String, List<String>> map);
+
+	
+	
+
+	
+}

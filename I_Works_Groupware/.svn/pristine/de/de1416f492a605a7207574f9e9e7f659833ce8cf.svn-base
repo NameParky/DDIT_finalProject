@@ -1,0 +1,57 @@
+package kr.or.ddit.controller.reservation;
+
+import java.security.Principal;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.service.IFreeseatService;
+import kr.or.ddit.vo.SeatResVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class RsvListController {
+	
+	@Inject
+	private IFreeseatService freeseatService;
+	
+	// 내예약 페이지(사용자)
+	@RequestMapping(value="/myrsv/list.do", method = RequestMethod.GET)
+	public String mainpage(Principal principal, Model model) {
+		List<SeatResVO> freeseatList = freeseatService.myFreeseatRsvList(principal.getName());
+		model.addAttribute("freeseatList", freeseatList);
+		model.addAttribute("resBar", "resBar");
+		return "main/reservation/myRsvList";
+	}
+	
+	// 자율좌석 날짜 검색
+	@ResponseBody
+	@RequestMapping(value="/dateseatlist.do", method = RequestMethod.POST)
+	public ResponseEntity<List<SeatResVO>> cancleSeat(Principal principal, @RequestBody SeatResVO seatResVO) {
+		seatResVO.setEmpNo(principal.getName());
+		log.info("seatResVO : " + seatResVO.toString());
+		List<SeatResVO> dateFreeseatList = freeseatService.dateFreeSeatRsvList(seatResVO);
+		ResponseEntity<List<SeatResVO>> entity = new ResponseEntity<List<SeatResVO>>(dateFreeseatList, HttpStatus.OK);
+		return entity;
+	}
+	
+	// 예약현황 페이지(관리자)
+	@RequestMapping(value="/admin/rsvlist.do", method = RequestMethod.GET)
+	public String mainpageAdmin(Principal principal, Model model) {
+		List<SeatResVO> freeseatList = freeseatService.allFreeseatRsvList();
+		model.addAttribute("freeseatList", freeseatList);
+		model.addAttribute("resBar", "resBar");
+		return "main/reservation/allRsvListAdmin";
+	}
+	
+}

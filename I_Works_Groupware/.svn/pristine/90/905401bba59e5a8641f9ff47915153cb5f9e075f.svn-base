@@ -1,0 +1,168 @@
+package kr.or.ddit.service.impl;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.mapper.AuthMapper;
+import kr.or.ddit.service.IAuthService;
+import kr.or.ddit.vo.AtrzFormVO;
+import kr.or.ddit.vo.AtrzPathVO;
+import kr.or.ddit.vo.DraftRefVO;
+import kr.or.ddit.vo.DraftVO;
+
+@Service
+public class AuthServiceImpl implements IAuthService {
+
+	@Inject
+	private AuthMapper authMapper;
+	
+	//모든 결재 양식 불러오기
+	@Override
+	public List<AtrzFormVO> selectAtrzForm() {
+		return authMapper.selectAtrzForm();
+	}
+	//결재양식 코드를 통해 1개 양식 불러오기
+	@Override
+	public AtrzFormVO selectAtrzContent(String atrzfCd) {
+		return authMapper.selectAtrzContent(atrzfCd);
+	}
+	//임시저장 - 결재선 3명 같이 insert - 참조자도 있다면 insert
+	@Override
+	public ServiceResult draftTempSaveInsert(DraftVO draftVO) {
+ 		ServiceResult result = null;
+ 		//참조자 삭제
+		authMapper.refDelete(draftVO.getDrftCd());
+		//결재선 삭제
+		authMapper.authPathDelete(draftVO.getDrftCd());
+ 		//임시저장(기안)
+ 		int status = authMapper.draftTempSaveInsert(draftVO);
+ 		if(status > 0) {
+ 			result = ServiceResult.OK;
+ 		}else {
+ 			result = ServiceResult.FAILED;
+ 		}
+		return result;
+	}
+	
+	// 결재선 결재자
+	public ServiceResult pathInsert(AtrzPathVO pathVO) {
+		ServiceResult result = null;
+		int status = authMapper.atrzPathInsert(pathVO);
+		if(status > 0) {
+ 			result = ServiceResult.OK;
+ 		}else {
+ 			result = ServiceResult.FAILED;
+ 		}
+		return result;
+	}
+
+	// 참조자도 여러명
+	@Override
+	public ServiceResult refInsert(DraftRefVO refVO) {
+		ServiceResult result = null;
+		int status = authMapper.refInsert(refVO);
+		if(status > 0) {
+ 			result = ServiceResult.OK;
+ 		}else {
+ 			result = ServiceResult.FAILED;
+ 		}
+		return result;
+	}
+
+	@Override
+	public List<DraftVO> selectTempSaveList(String empNo) {
+		return authMapper.selectTempSaveList(empNo);
+	}
+	@Override
+	public DraftVO tempSaveDetail(DraftVO draftVO) {
+  		return authMapper.tempSaveDetail(draftVO);
+	}
+	@Override
+	public List<AtrzPathVO> pathSelect(DraftVO draftVO) {
+		return authMapper.pathSelect(draftVO);
+	}
+	@Override
+	public List<DraftRefVO> refSelect(DraftVO draftVO) {
+		return authMapper.refSelect(draftVO);
+	}
+
+	//임시저장 삭제
+	@Override
+	public ServiceResult tempSaveDelete(String drftCd) {
+		ServiceResult result = null;
+		//참조자 삭제
+		authMapper.refDelete(drftCd);
+		//결재선 삭제
+		authMapper.authPathDelete(drftCd);
+		int status = authMapper.tempSaveDelete(drftCd);
+		if(status > 0) {
+ 			result = ServiceResult.OK;
+ 		}else {
+ 			result = ServiceResult.FAILED;
+ 		}
+		return result;
+	}
+
+	@Override	//임시저장 -> 결재상신
+	public ServiceResult approval(DraftVO draftVO) {
+		ServiceResult result = null;
+		//참조자 삭제
+		authMapper.refDelete(draftVO.getDrftCd());
+		//결재선 삭제
+		authMapper.authPathDelete(draftVO.getDrftCd());
+ 		int status = authMapper.approval(draftVO);
+ 		if(status > 0) {
+ 			result = ServiceResult.OK;
+ 		}else {
+ 			result = ServiceResult.FAILED;
+ 		}
+		return result;
+	}
+
+	//진행중문서함
+	@Override
+	public List<DraftVO> selectProgList(String empNo) {
+		return authMapper.selectProgList(empNo);
+	}
+	@Override
+	public DraftVO progDetail(DraftVO draftVO) {
+ 		return authMapper.progDetail(draftVO);
+	}
+	
+	@Override
+	public ServiceResult dfApproval(DraftVO draftVO) {
+		ServiceResult result = null;
+ 		//임시저장(기안)
+ 		int status = authMapper.dfApproval(draftVO);
+ 		if(status > 0) {
+ 			result = ServiceResult.OK;
+ 		}else {
+ 			result = ServiceResult.FAILED;
+ 		}
+		return result;
+	}
+	//반려문서함
+	@Override
+	public List<DraftVO> selectRetList(String empNo) {
+		return authMapper.selectRetList(empNo);
+	}
+	@Override
+	public DraftVO retDetail(DraftVO draftVO) {
+		return authMapper.retDetail(draftVO);
+	}
+	
+	//완료문서함
+	@Override
+	public List<DraftVO> selectComList(String empNo) {
+		return authMapper.selectComList(empNo);
+	}
+	@Override
+	public DraftVO comDetail(DraftVO draftVO) {
+		return authMapper.comDetail(draftVO);
+	}
+
+}

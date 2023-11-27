@@ -1,0 +1,20 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class BoardNoticeVO {
+	private String noNo;
+	private String noTitle;
+	private String noContent;
+	private Date noDate;
+	private int noHit;
+	// 공지사항 작성자
+	private String nowRiterEmpNo;
+}

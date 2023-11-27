@@ -1,0 +1,34 @@
+package kr.or.ddit.service.impl;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mapper.PortletMapper;
+import kr.or.ddit.service.IPortletService;
+import kr.or.ddit.vo.PortletVO;
+
+@Service
+public class PortletServiceImpl implements IPortletService {
+
+	@Inject
+	private PortletMapper mapper;
+	
+	@Override
+	public void clearPortlet(String empNo) {
+		mapper.deletePortlet(empNo);
+	}
+	
+	@Override
+	public void addPortlet(PortletVO portlet) {
+		mapper.insertPortlet(portlet);
+	}
+
+	@Override
+	public List<PortletVO> showPortlet(String empNo) {
+		return mapper.selectPortletList(empNo);
+	}
+
+}

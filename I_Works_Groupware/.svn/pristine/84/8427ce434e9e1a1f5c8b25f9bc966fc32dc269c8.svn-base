@@ -1,0 +1,124 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+
+<h2>&nbsp;발신메일함</h2>
+<div class="email-container pt-5">
+	<div
+		class="row gx-lg-6 gx-3 py-0 z-index-2 position-sticky bg-soft email-header pb-4">
+		<div class="col-auto">
+			<a class="btn btn-primary email-sidebar-width d-none d-lg-block"
+				href="/sendmail.do">메일보내기</a>
+			<button class="btn px-3 btn-phoenix-secondary text-700 d-lg-none"
+				data-phoenix-toggle="offcanvas"
+				data-phoenix-target="#emailSidebarColumn">
+				<span class="fa-solid fa-bars"></span>
+			</button>
+		</div>
+		<div class="col-auto d-lg-none">
+			<a class="btn btn-primary px-3 px-sm-4"
+				href="../../apps/email/compose.html"> <span
+				class="d-none d-sm-inline-block">Compose</span><span
+				class="d-sm-none fas fa-plus"></span></a>
+		</div>
+		<div class="col-auto flex-1">
+			<div class="search-box w-100">
+				<form class="position-relative" data-bs-toggle="search"
+					data-bs-display="static">
+					<input class="form-control search-input search" type="search"
+						placeholder="Search ..." aria-label="Search" /> 
+						<span class="uil uil-search search-box-icon"></span>
+
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="row g-lg-6 mb-8">
+		<div class="col-lg-auto">			
+			<div class="phoenix-offcanvas-backdrop d-lg-none"
+				data-phoenix-backdrop="data-phoenix-backdrop" style="top: 0;"></div>
+		</div>
+		<div class="col-lg">
+			<div class="px-lg-1">
+				<div
+					class="d-flex align-items-center flex-wrap position-sticky pb-2 bg-soft z-index-2 email-toolbar inbox-toolbar">
+					<div class="d-flex align-items-center flex-1 me-2">
+					</div>
+					<div class="d-flex">
+						<p class="text-600 fs--1 fw-semi-bold mb-0 me-3">
+							Showing : <span class="text-900">1-7 </span>of <span
+								class="text-900">205</span>
+						</p>
+						<button class="btn p-0 me-3" type="button">
+							<span class="text-primary uil uil-angle-left-b"></span>
+						</button>
+						<button class="btn p-0" type="button">
+							<span class="text-primary uil uil-angle-right-b"></span>
+						</button>
+					</div>
+				</div>
+				<div
+					class="border-top border-200 py-2 d-flex justify-content-between">
+					<div class="form-check mb-0 fs-0">
+						<input class="form-check-input" type="checkbox"
+							data-bulk-select-row="data-bulk-select-row" />
+					</div>
+					
+					<!-- 상단 메뉴 버튼 (삭제 중요메일) -->
+					<div>
+						<div>
+						<button class="btn p-0 me-2 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="Delete">
+							<span class="text-700 uil uil-trash"></span>
+						</button>
+						<button class="btn p-0 me-2 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="Star">
+							<span class="text-700 uil uil-favorite"></span>
+						</button>
+					</div>
+					</div>
+				</div>
+				<div class="border-top border-200 hover-actions-trigger py-3">
+					<div class="row align-items-sm-center gx-2">
+						<div class="col-auto">
+							<div class="d-flex flex-column flex-sm-row">
+								<input class="form-check-input mb-2 m-sm-0 me-sm-2"
+									type="checkbox" id="checkbox-1"
+									data-bulk-select-row="data-bulk-select-row" />
+								<button class="btn p-0">
+									<span class="uil text-700 uil-favorite"></span>
+								</button>
+							</div>
+						</div>
+						<div class="col-auto">
+						</div>
+						<div class="col-auto">
+						<!-- 작성자 -->
+							<a class="text-1100 fw-bold inbox-link fs-1"
+								href="">조현준 교수님</a>
+						</div>
+						<div class="col-auto ms-auto">
+							<!-- 작성시간 -->
+							<span class="fs--2 fw-bold">10/23 09:39</span>
+						</div>
+					</div>
+					<div class="ms-4 mt-n3 mt-sm-0 ms-sm-11">
+						<a class="d-block inbox-link"
+							href="../../apps/email/email-detail.html"><span
+							class="fs--1 line-clamp-1 text-1100"></span>
+							<!-- 작성제목 -->
+							<p class="fs--1 ps-0 fw-bold text-1100 mb-0 line-clamp-3">교수님 타이핑이 너무 번개같으세요...</p> </a>
+					</div>
+					<div class="ms-4 mt-n3 mt-sm-0 ms-sm-11">
+						<a class="d-block inbox-link"
+							href="../../apps/email/email-detail.html">
+							<!-- 작성내용 -->
+							<p class="fs--1 ps-0 text-700 mb-0 line-clamp-2">벌써 한챕터가 다 끝났다구예???.</p> </a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,261 @@
+package kr.or.ddit.service.impl;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.mapper.FileMapper;
+import kr.or.ddit.service.IFileService;
+import kr.or.ddit.vo.FolderFileVO;
+import kr.or.ddit.vo.FolderVO;
+
+@Service
+public class FileServiceImpl implements IFileService {
+	
+	@Inject
+	private FileMapper mapper;
+	
+	private String UserNoFind() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		return empNo;
+	}
+	
+	private List<String> FolderCreate(FolderVO folderVO, List<String> folderPathArray) {
+		System.out.println("재귀호출 들어옴");
+		if(folderVO.getFolderParent()==null) {
+			System.out.println("재귀호출 널");	
+			return folderPathArray;
+		} else {
+			System.out.println(folderVO.getFolderParent());
+			String motherFolder = folderVO.getFolderParent();
+			FolderVO parentFolder = mapper.selectParentFolder(motherFolder);
+			// 코드가아닌 이름값을 집어넣어서 패스로 활용해야함.
+			folderPathArray.add(parentFolder.getFolderName());
+			FolderCreate(parentFolder, folderPathArray);
+			System.out.println("재귀호출 낫널");
+		}
+		return folderPathArray;
+	}
+	
+	@Override
+	public void insertIndFolder(FolderVO folderVO, 
+			HttpServletRequest req, HttpServletResponse resp) {
+		folderVO.setEmpNo(UserNoFind());
+		
+		// 중요!!.
+		// 현재 파라미터로 받은 값은 인서트가 안된 값이기 때문에 폴더코드가 없으므로
+		// 부모코드가 있을 경우, 부모코드에 대한 내용을 꼭 받아와서 로직이 처리될 수 있게해야한다.
+		List<String> folderPathArray = new ArrayList<String>();
+		folderPathArray.add(folderVO.getFolderName());
+		
+		if(folderVO.getFolderParent()==null) {
+			System.out.println("널");
+		} else {
+			System.out.println("낫널");
+			// 폴더부모의 이름값들의 array를 리턴받기 위한 재귀호출.
+			folderPathArray = FolderCreate(folderVO, folderPathArray);
+		}
+		
+		String addPath = "";
+		// for문 마이너스로 가야함.
+		// 재귀호출 메소드에서 자식 >> 부모형태로 array가 쌓이므로 추가시킬땐 역순으로.
+		for(int i = folderPathArray.size()-1; i >= 0; i--) {
+			addPath += "/"+folderPathArray.get(i);
+			System.out.println("i = "+i);
+		}
+		System.out.println(addPath);
+		
+		String path = req.getServletContext().getRealPath("/resources/file")+"/"+folderVO.getEmpNo()+"/"+addPath;
+		System.out.println(path);
+		
+		File file = new File(path);
+		
+		if(!file.exists()) {
+			file.mkdirs();
+		}
+		
+		HttpSession session = req.getSession();
+		System.out.println("세선에 넣은 값 : "+folderVO.getFolderParent());
+		session.setAttribute("folderCd", folderVO.getFolderParent());
+		
+		mapper.insertIndFolder(folderVO);
+	}
+
+	@Override
+	public FolderVO selectIndFolder(FolderVO folderVO) {
+		folderVO.setEmpNo(UserNoFind());
+		folderVO.setFolderCd(UserNoFind());
+		System.out.println("서비스 폴더보 사원명 : " + folderVO.getEmpNo());
+		System.out.println("서비스 폴더코드 명 : " + folderVO.getFolderCd());
+		return mapper.selectIndFolder(folderVO);
+	}
+	
+	@Override
+	public List<FolderVO> selectChildFolder(FolderVO folderVO) {
+		return mapper.selectChildFolder(folderVO);
+	}
+
+	@Override
+	public FolderVO selectParentFolder(String motherFolder) {
+		return mapper.selectParentFolder(motherFolder);
+	}
+
+	@Override
+	public FolderVO selectMyselfFolder(FolderVO folderVO) {
+		return mapper.selectMyselfFolder(folderVO);
+	}
+
+	@Override
+	public void insertIndFile(FolderVO folderVO,
+			HttpServletRequest req, HttpServletResponse resp
+			) throws IOException {
+		System.out.println("인서트 서비스 시작");
+		FolderVO folderFile = new FolderVO();
+		FolderFileVO fileVO = new FolderFileVO();
+		fileVO.setEmpNo(UserNoFind());
+		
+		for(int i = 0; i < folderVO.getFoFile().length; i++) {
+			
+			String fileName = folderVO.getFoFile()[i].getOriginalFilename();
+			System.out.println(fileName);
+			String fileType = fileName.substring((fileName.lastIndexOf(".")+1));
+			System.out.println(fileType);
+			UUID randomName = UUID.randomUUID();
+			System.out.println(randomName);
+			String fileSavename = randomName+fileName;
+			System.out.println(fileSavename);
+			
+			List<String> folderPathArray = new ArrayList<String>();
+			
+			if(folderVO.getFolderParent()==null) {
+				System.out.println("널");
+			} else {
+				System.out.println("낫널");
+				// 폴더부모의 이름값들의 array를 리턴받기 위한 재귀호출.
+				folderPathArray = FolderCreate(folderVO, folderPathArray);
+			}
+			
+			String addPath = "";
+			// for문 마이너스로 가야함.
+			// 재귀호출 메소드에서 자식 >> 부모형태로 array가 쌓이므로 추가시킬땐 역순으로.
+			for(int j = folderPathArray.size()-1; j >= 0; j--) {
+				addPath += "/"+folderPathArray.get(j);
+				System.out.println("j = "+j);
+			}
+			System.out.println(addPath);
+			
+			// 일단 CRUD하듯이 멀티파트에 배열형태로 담겨져온 데이터를 SET해놓고.
+			// target에 경로값, UUID+이름값을 담은후에
+			// FileCopyUtils에 추가로 데이터값을 담아서 파일의 카피를 진행한다.
+			// 만약 타겟에서 이름값을 보내주지 않으면 카피를 진행할때 이름이 설정되지않고 FOFILE(변수이름)로 저장되는것 같다.
+			String fileSavepath = req.getServletContext().getRealPath("/"+"resources"+"/"+"file")+addPath;
+			System.out.println(fileSavepath);
+			
+			String fileDataSavePath = "resources/file"+addPath+"/";
+			File filePath = new File(fileSavepath);
+			
+			if(!filePath.exists()) {
+				filePath.mkdirs();
+			}
+			
+			byte[] fileData = folderVO.getFoFile()[i].getBytes();
+			
+			File target = new File(fileSavepath, fileSavename); // 파일 업로드 준비
+			FileCopyUtils.copy(fileData, target); // 파일 복사 진행
+			
+			
+			fileVO.setFileSec(i+1);
+			// 다운로드 횟수
+			fileVO.setFileDowncnt(0);
+			// 즐겨찾기 여부
+			fileVO.setFileLikese(1);
+			// 파일 마임타입
+			fileVO.setFileMime(folderVO.getFoFile()[i].getContentType());
+			// 확장자명 제거한 순수이름 가져오기.
+			String[] fileOrgNameArr = folderVO.getFoFile()[i].getOriginalFilename().split("\\.");
+			String fileOrgName = "";
+			for(int j = 0; j < fileOrgNameArr.length-1; j++) {
+				System.out.println("대환장 네임들 : "+fileOrgNameArr[j]);
+				fileOrgName += fileOrgNameArr[j];
+			}
+			// 파일이름
+			fileVO.setFileOrgname(fileOrgName);
+			// 파일 저장이름 (UUID포함)
+			fileVO.setFileSavename(fileSavename);
+			// 파일 저장경로
+			fileVO.setFileSavepath(fileDataSavePath);
+			// 파일 구분
+			fileVO.setFileSe("개인");
+			// 파일크기
+			fileVO.setFileSize(folderVO.getFoFile()[i].getSize());
+			// 파일 확장자
+			fileVO.setFileType(fileType);
+			System.out.println("폴더파일 폴더코드 : ");
+			System.out.println(folderVO.getFolderParent());
+			folderFile.setFolderCd(folderVO.getFolderParent());
+			folderFile.setFileSec(i+1);
+			System.out.println("파일인서트");
+			mapper.insertIndFile(fileVO);
+			System.out.println("폴더파일인서트");
+			mapper.insertFolderFile(folderFile);
+			// currval에 문제있는거 물어볼것.
+			// 물어보고 해결되면 insertFolderFile작업 마무리하고
+			// 교수님 시간되면 > 업로드 다운로드
+			// 안되시면 리스트 띄워서 확장자별로 아이콘 따로주기 작업해놓을것.
+		}
+		
+		HttpSession session = req.getSession();
+		System.out.println("세선에 넣은 값 : "+folderVO.getFolderParent());
+		session.setAttribute("folderCd", folderVO.getFolderParent());
+	}
+
+	@Override
+	public List<FolderFileVO> selectChildFile(FolderVO folderVO) {
+		return mapper.selectChildFile(folderVO);
+	}
+
+	@Override
+	public void insertDefaultIndFolder(FolderVO folderVO) {
+		folderVO.setEmpNo(UserNoFind());
+		mapper.insertDefaultIndFolder(folderVO);
+	}
+
+	@Override
+	public int selectDefaultIndFolder(FolderVO folderVO) {
+		return mapper.selectDefaultIndFolder(folderVO);
+	}
+
+	@Override
+	public FolderFileVO selectMyselfFile(FolderFileVO folderFileVO) {
+		return mapper.selectMyselfFile(folderFileVO);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

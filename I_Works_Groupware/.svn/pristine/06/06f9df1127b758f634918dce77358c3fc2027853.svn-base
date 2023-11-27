@@ -1,0 +1,21 @@
+package kr.or.ddit.vo;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+
+@Data
+public class PortletVO {
+	@JsonProperty("id")
+	private String portCatecode;
+	private String empNo;
+	private int portUsese;
+	@JsonProperty("x")
+	private int portXcoord;
+	@JsonProperty("y")
+	private int portYcoord;
+	@JsonProperty("w")
+	private int portWidth;
+	@JsonProperty("h")
+	private int portHeight;
+}

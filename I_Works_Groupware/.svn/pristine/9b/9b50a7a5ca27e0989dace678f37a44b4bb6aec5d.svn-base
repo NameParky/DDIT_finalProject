@@ -1,0 +1,95 @@
+package kr.or.ddit.service.impl;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.mapper.AdminEmpMapper;
+import kr.or.ddit.mapper.EmpMapper;
+import kr.or.ddit.service.IEmpService;
+import kr.or.ddit.vo.EmpVO;
+import kr.or.ddit.vo.TodoListVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class EmpService implements IEmpService {
+
+	@Inject
+	private EmpMapper empMapper;
+	@Inject
+	private AdminEmpMapper adminMapper;
+	@Inject
+	private PasswordEncoder pe;
+	@Inject
+	private JavaMailSender emailSender;
+	@Inject
+	private SendEmailService sendEmailController;
+	
+
+	public List<EmpVO> showDeptEmp(String deptCd) {
+		return empMapper.selectDeptEmp(deptCd);
+	}
+
+	@Override
+	public List<EmpVO> showEmpList() {
+		return adminMapper.selectWorkEmp();
+	}
+
+	@Override
+	public ServiceResult findPwCheck(EmpVO empVO) {
+		
+		log.info("findPwCheck() 실헹...! empNo  : "+ empVO.getEmpNo());
+		log.info("findPwCheck() 실헹...! empEmail  : "+ empVO.getEmpEmail());
+		ServiceResult result = null;
+		String newPw = "";
+
+		String selectEmpPw = empMapper.findPwCheck(empVO);
+		if (StringUtils.isNotBlank(selectEmpPw)) {
+			
+			int rnd = (int) (Math.random() * 10);
+			log.info("rnd"+ rnd);
+			String randomUU = UUID.randomUUID().toString();
+			newPw = randomUU.substring(0,rnd);
+			log.info("새로 생성된 비밀번호 : " + newPw);
+			String empPw = pe.encode(newPw);
+			empVO.setEmpPw(empPw);
+			int status = empMapper.updatePw(empVO);
+			if (status != 0) {
+				try {
+					// 메일 내용 작성
+					String empEmail = empVO.getEmpEmail();
+					MimeMessage  message = sendEmailController.setmeMessage(empEmail, newPw);
+					// 메일 보내주기
+					emailSender.send(message);
+					result = ServiceResult.OK;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+		} else {
+		
+			result = ServiceResult.FAILED;
+		}
+
+		return result;
+	}
+
+	
+
+	
+}

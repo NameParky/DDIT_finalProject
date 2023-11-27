@@ -1,0 +1,19 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class ChatVO {
+	private int chatNo;
+	private Date chatDate;
+	private String chatMsg; 
+	private String chasenderEmpno;
+	private int chatUncheck;
+	private String crNo;
+}

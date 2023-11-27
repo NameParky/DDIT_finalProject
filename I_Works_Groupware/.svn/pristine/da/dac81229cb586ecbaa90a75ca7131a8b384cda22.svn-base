@@ -1,0 +1,10 @@
+package kr.or.ddit.service;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.DocHistoryVO;
+
+public interface IDocService {
+
+	public ServiceResult appDoc(DocHistoryVO docHistoryVO);
+
+}

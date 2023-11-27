@@ -1,0 +1,19 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.FolderFileVO;
+import kr.or.ddit.vo.FolderVO;
+
+public interface FileMapper {
+
+	void insertIndFolder(FolderVO folderVO);
+	FolderVO selectIndFolder(FolderVO folderVO);
+	FolderVO selectParentFolder(String motherFolder);
+	FolderVO selectMyselfFolder(FolderVO folderVO);
+	List<FolderVO> selectChildFolder(FolderVO folderVO);
+	void insertIndFile(FolderFileVO fileVO);
+	void insertFolderFile(FolderVO folderFile);
+	List<FolderFileVO> selectChildFile(FolderVO folderVO);
+
+}

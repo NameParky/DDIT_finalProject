@@ -1,0 +1,22 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class chatSelectResultVO {
+	private String crNo;
+	private int chatNo;
+	private Date chatDate;
+	private String chatMsg;
+	private String empNo;
+	private String crcmTitle;
+	private String empName;
+}

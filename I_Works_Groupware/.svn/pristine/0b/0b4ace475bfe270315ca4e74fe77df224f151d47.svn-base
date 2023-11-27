@@ -1,0 +1,38 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.AtrzFormVO;
+import kr.or.ddit.vo.AtrzPathVO;
+import kr.or.ddit.vo.DraftRefVO;
+import kr.or.ddit.vo.DraftVO;
+
+public interface IAuthService {
+	//결재양식 모두 select
+	public List<AtrzFormVO> selectAtrzForm();
+
+	public AtrzFormVO selectAtrzContent(String atrzfCd);
+	//임시저장
+	public ServiceResult draftTempSaveInsert(DraftVO draftVO);
+	//결재자(결재선)
+	public ServiceResult pathInsert(AtrzPathVO pathVO);
+	//참조자
+	public ServiceResult refInsert(DraftRefVO refVO);
+	
+	//임시저장인 문서
+	public List<DraftVO> selectTempSaveList(String empNo);
+	//임시저장문서 디테일 
+	public DraftVO tempSaveDetail(DraftVO draftVO);
+	public List<AtrzPathVO> pathSelect(DraftVO draftVO);
+	public List<DraftRefVO> refSelect(DraftVO draftVO);
+
+	//임시저장 삭제
+	public ServiceResult tempSaveDelete(String drftCd);
+	//결재상신
+	public ServiceResult approvalInsert(DraftVO draftVO);
+	
+	
+
+	
+}

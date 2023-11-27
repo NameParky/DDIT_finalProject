@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.TaskMapper">
+
+<!-- 	<resultMap type="taskVO" id="taskMap"> -->
+<!-- 		<id property="taskCd" column="task_cd"/> -->
+<!-- 		<result property="taskTitle" column="task_title"/> -->
+<!-- 		<result property="taskContent" column="task_content"/> -->
+<!-- 		<result property="taskStartdate" column="task_startdate"/> -->
+<!-- 		<result property="taskEnddate" column="task_enddate"/> -->
+<!-- 		<result property="taskType" column="task_type"/> -->
+<!-- 		<result property="taskMemo" column="task_memo"/> -->
+<!-- 		<result property="empNo" column="emp_no"/> -->
+<!-- 		<result property="teamEmp" column="team_emp"/> -->
+<!-- 		<result property="empPhoto" column="emp_photo"/> -->
+<!-- 		<result property="teamempPhotos" column="teamemp_photos"/> -->
+<!-- 		<result property="tdCd" column="td_cd"/> -->
+<!-- 		<result property="tdContent" column="td_content"/> -->
+<!-- 		<result property="tdStartdate" column="td_startdate"/> -->
+<!-- 		<result property="tdEnddate" column="td_Enddate"/> -->
+<!-- 		<result property="tdMemo" column="td_memo"/> -->
+<!-- 		<result property="tdStatusse" column="td_statusse"/> -->
+<!-- 		<result property="tdEmpno" column="td_empno"/> -->
+<!-- 		<result property="tdEmpphoto" column="td_empphoto"/> -->
+<!-- 		<result property="chargeEmp" column="charge_emp"/> -->
+<!-- 	</resultMap> -->
+
+	<select id="selectTaskCount" parameterType="pagingVO" resultType="int">
+		select count(task_cd)
+		from task
+		where 1=1
+<!-- 		<include refid="boardSearch"/> -->
+	</select>
+
+	<select id="selectTaskList" parameterType="string" resultType="taskVO">
+	    <![CDATA[
+	      SELECT 
+			    a.TASK_CD,
+			    a.TASK_TITLE,
+			    a.TASK_CONTENT,
+			    a.TASK_STARTDATE,
+			    a.TASK_ENDDATE,
+			    a.TASK_TYPE,
+			    a.TASK_MEMO,
+			    a.EMP_NO,
+			    LISTAGG(b.emp_no, ', ') WITHIN GROUP (ORDER BY b.emp_no) AS team_emp,
+			    (SELECT COUNT(DECODE(td_statusse, 'y', 1)) FROM tkdetail WHERE task_cd = a.TASK_CD) AS td_ychk,
+			    (SELECT COUNT(td_statusse) FROM tkdetail WHERE task_cd = a.TASK_CD) AS td_totchk,
+			    (select c.emp_photo from emp c where a.emp_no = c.emp_no OR c.emp_no = a.emp_no) as emp_photo
+			FROM task a 
+			LEFT OUTER JOIN tkcharge b ON a.task_Cd = b.task_Cd
+			WHERE a.emp_no = #{empNo} OR #{empNo} IN (SELECT emp_no FROM tkcharge WHERE task_Cd = a.task_Cd)
+			GROUP BY a.TASK_CD, a.TASK_TITLE, a.TASK_CONTENT, a.TASK_STARTDATE, a.TASK_ENDDATE, a.TASK_TYPE, a.TASK_MEMO, a.EMP_NO
+			ORDER BY a.TASK_ENDDATE
+	    ]]>
+	</select>
+<!-- 	      SELECT  -->
+<!-- 		    a.TASK_CD, -->
+<!-- 		    a.TASK_TITLE, -->
+<!-- 		    a.TASK_CONTENT, -->
+<!-- 		    a.TASK_STARTDATE, -->
+<!-- 		    a.TASK_ENDDATE, -->
+<!-- 		    a.TASK_TYPE, -->
+<!-- 		    a.TASK_MEMO, -->
+<!-- 		    a.EMP_NO, -->
+<!-- 		    LISTAGG(b.emp_no, ', ') WITHIN GROUP (ORDER BY b.emp_no) AS team_emp -->
+<!-- 		FROM task a  -->
+<!-- 		LEFT OUTER JOIN tkcharge b ON a.task_Cd = b.task_Cd -->
+<!-- 		WHERE a.emp_no = #{empNo} OR #{empNo} IN (SELECT emp_no FROM tkcharge WHERE task_Cd = a.task_Cd) -->
+<!-- 		GROUP BY a.TASK_CD, a.TASK_TITLE, a.TASK_CONTENT, a.TASK_STARTDATE, a.TASK_ENDDATE, a.TASK_TYPE, a.TASK_MEMO, a.EMP_NO -->
+<!-- 		order by a.TASK_ENDDATE -->
+
+	<!-- map이었음 -->
+	<select id="selectTaskStatList" parameterType="taskVO" resultType="taskVO">
+		SELECT
+			task_cd, td_statusse, a.EMP_NO,
+		FROM TKDETAIL
+		where a.emp_no = #{empNo} OR #{empNo} IN (SELECT emp_no FROM tkcharge WHERE task_Cd = a.task_Cd)
+	</select>	
+	
+	<insert id="insertTask" parameterType="taskVO">
+	    INSERT INTO task (
+	        TASK_CD, TASK_TITLE, TASK_CONTENT, TASK_STARTDATE, TASK_ENDDATE, TASK_TYPE, TASK_MEMO, EMP_NO
+	    ) VALUES (
+	        (SELECT NVL(MAX(TO_NUMBER(task_cd)), 0) + 1 FROM task), 
+	        #{taskTitle}, #{taskContent}, #{taskStartdate}, #{taskEnddate}, #{taskType}, #{taskMemo}, #{empNo}
+	    )
+	</insert>
+	
+	<!-- map이었음 -->
+	<select id="selectTask" parameterType="taskVO" resultType="taskVO">
+		<![CDATA[
+		SELECT 
+		    a.TASK_CD,
+		    a.TASK_TITLE,
+		    a.TASK_CONTENT,
+		    a.TASK_STARTDATE,
+		    a.TASK_ENDDATE,
+		    a.TASK_TYPE,
+		    a.TASK_MEMO,
+		    a.EMP_NO as charge_emp, 
+		   	(select c.emp_photo from emp c where a.emp_no = c.emp_no OR c.emp_no = a.emp_no) as emp_photo,
+		    LISTAGG(b.emp_no, ', ') WITHIN GROUP (ORDER BY b.emp_no) AS team_emp,
+		    LISTAGG(c.emp_photo, ', ') WITHIN GROUP (ORDER BY b.emp_no) AS teamemp_photos
+		FROM task a 
+		LEFT OUTER JOIN tkcharge b ON a.task_Cd = b.task_Cd
+		LEFT OUTER JOIN emp c ON b.emp_no = c.EMP_NO
+		WHERE a.task_cd = #{taskCd}
+		GROUP BY a.TASK_CD, a.TASK_TITLE, a.TASK_CONTENT, a.TASK_STARTDATE, a.TASK_ENDDATE, a.TASK_TYPE, a.TASK_MEMO, a.EMP_NO
+		ORDER BY TO_NUMBER(task_cd)  
+	    ]]>
+	</select>
+	
+	<!-- map이었음 -->
+	<select id="selectDetTaskList" parameterType="taskVO" resultType="taskVO">
+		SELECT
+			td_cd, task_cd, td_content, td_startdate, td_enddate, td_memo, td_statusse, td_empno, e.emp_photo as td_empphoto
+		FROM TKDETAIL
+		LEFT OUTER JOIN EMP e ON (td_empno = e.emp_no)
+		where task_cd = #{taskCd}
+	</select>	
+
+	<!-- map이었음 -->
+	<select id="selectTeamEmpList" parameterType="taskVO" resultType="taskVO">
+		select 
+			emp_no		
+		from TKCHARGE
+		where task_cd = #{taskCd}
+	</select>	
+	
+	<insert id="insertdetTask" parameterType="taskVO">
+		INSERT INTO TKDETAIL(
+			TD_CD, TD_CONTENT, TD_STARTDATE, TD_MEMO, TASK_CD, TD_EMPNO
+		) VALUES(
+			(SELECT NVL(MAX(TO_NUMBER(TD_CD)), 0) + 1 FROM TKDETAIL), #{tdContent}, sysdate, #{tdMemo}, #{taskCd}, #{tdEmpno}
+		)
+	</insert>
+	
+	<update id="updateTask" parameterType="taskVO">
+		UPDATE TASK 
+		SET
+			TASK_TITLE = #{taskTitle},
+			TASK_STARTDATE = #{taskStartdate}, 
+			TASK_ENDDATE = #{taskEnddate}, 
+			TASK_TYPE = #{taskType},
+			TASK_CONTENT = #{taskContent},
+			TASK_MEMO = #{taskMemo}
+		WHERE TASK_CD = #{taskCd}
+	</update>
+	
+	<update id="turnNChk" parameterType="taskVO">
+		UPDATE TKDETAIL 
+		SET
+			TD_STATUSSE = 'n',
+			TD_ENDDATE = ''
+		WHERE TD_CD = #{tdCd}
+	</update>
+	<update id="turnYChk" parameterType="taskVO">
+		UPDATE TKDETAIL 
+		SET
+			TD_STATUSSE = 'y',
+			TD_ENDDATE = SYSDATE
+		WHERE TD_CD = #{tdCd}
+	</update>
+	<update id="updateChk" parameterType="taskVO">
+		UPDATE TKDETAIL 
+		SET
+			TD_CONTENT = #{tdContent},
+			TD_MEMO = #{tdMemo}
+		WHERE TD_CD = #{tdCd}
+	</update>
+	
+	<delete id="deleteTd" parameterType="taskVO">
+		delete TKDETAIL
+		where td_cd = #{tdCd}
+	</delete>
+	
+	<update id="updateTd" parameterType="taskVO">
+		UPDATE TKDETAIL 
+		SET
+			TD_CONTENT = #{tdContent},
+			TD_MEMO = #{tdMemo},
+			TD_STARTDATE = #{tdStartdate}
+		WHERE TD_CD = #{tdCd}
+	</update>
+	
+	
+<!-- 	<update id="updateCheckboxState" parameterType="taskVO"> -->
+<!--         UPDATE TKDETAIL -->
+<!--         SET  td_statusse = -->
+<!--         <if test="isChecked"> 'y' </if> -->
+<!--         <if test="!isChecked"> 'n' </if> -->
+<!--         WHERE td_cd = #{td_cd} -->
+<!--     </update> -->
+    
+    
+	     <!-- SELECT 
+		    a.TASK_CD,
+		    a.TASK_TITLE,
+		    a.TASK_CONTENT,
+		    a.TASK_STARTDATE,
+		    a.TASK_ENDDATE,
+		    a.TASK_TYPE,
+		    a.TASK_MEMO,
+		    a.EMP_NO, 
+		   	(select c.emp_photo from emp c where a.emp_no = c.emp_no OR c.emp_no = a.emp_no) as emp_photo,
+		    LISTAGG(b.emp_no, ', ') WITHIN GROUP (ORDER BY b.emp_no) AS team_emp,
+		    LISTAGG(c.emp_photo, ', ') WITHIN GROUP (ORDER BY b.emp_no) AS teamemp_photos,
+            d.td_content, d.td_startdate, d.td_enddate, d.td_memo, d.td_statusse, d.td_empno
+		FROM task a 
+		LEFT OUTER JOIN tkcharge b ON a.task_Cd = b.task_Cd
+		LEFT OUTER JOIN emp c ON b.emp_no = c.EMP_NO
+		LEFT OUTER JOIN tkdetail d on a.task_cd = d.task_cd
+		WHERE a.task_cd = #{taskCd}
+		GROUP BY a.TASK_CD, a.TASK_TITLE, a.TASK_CONTENT, a.TASK_STARTDATE, a.TASK_ENDDATE, a.TASK_TYPE, a.TASK_MEMO, a.EMP_NO, d.td_content, d.td_startdate, d.td_enddate, d.td_memo, d.td_statusse, d.td_empno
+		ORDER BY TO_NUMBER(task_cd)   -->
+
+	
+</mapper>
+

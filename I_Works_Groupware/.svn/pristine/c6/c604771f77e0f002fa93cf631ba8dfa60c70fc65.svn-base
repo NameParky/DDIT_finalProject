@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ChatMapper">
+	
+	<resultMap id="chatSelectResultMap" type="chatSelectResultVO">
+	    <id property="crNo" column="cr_no" />
+	    <result property="chatNo" column="chat_no" />
+	    <result property="chatDate" column="chat_date" />
+	    <result property="chatMsg" column="chat_msg" jdbcType="VARCHAR"/>
+	    <result property="empNo" column="emp_no" />
+	    <result property="crcmTitle" column="crcm_title" />
+	    <result property="empName" column="emp_name" />
+	    <result property="empPhoto" column="emp_Photo" />
+	    <result property="deptCd" column="dept_cd" />
+	    <result property="deptName" column="dept_name" />
+	</resultMap>
+	<resultMap id="chatRoomDTLMap" type="chatRoomDTLVO">
+	    <id property="chatNo" column="chat_no" />
+	    <result property="chatDate" column="chat_date" />
+	    <result property="chatMsg" column="chat_msg" jdbcType="VARCHAR"/>
+	    <result property="chasenderEmpno" column="chasender_empNo" />
+	    <result property="chatUncheck" column="chat_uncheck" />
+	    <result property="crNo" column="cr_no" />
+	    <result property="crcmTitle" column="CRCM_TITLE" />
+	    <result property="empPhoto" column="emp_photo" />
+	</resultMap>
+	
+	<insert id="createChatMember" parameterType="chatMemberVO">
+		INSERT INTO chatMember(
+		EMP_NO, CR_NO, CC_FIRST, CC_END, CM_STATUS, CRCM_TITLE
+		)VALUES(
+		#{empNo}, #{crNo}, 0, 0, 0, #{crcmTitle}
+		)
+	</insert>
+	<insert id="createChatMember2" parameterType="chatMemberVO">
+		INSERT INTO chatMember(
+		EMP_NO, CR_NO, CC_FIRST, CC_END, CM_STATUS, CRCM_TITLE
+		)VALUES(
+		#{empNo}, #{crNo}, 0, 0, 0, #{crcmTitle}
+		)
+	</insert>
+	
+	<select id="selectcrNo2" parameterType="String" resultType="String">
+		SELECT CR_NO
+		FROM (
+            SELECT R.CR_NO
+            FROM CHATROOM R, CHATMEMBER M
+            WHERE M.EMP_NO = #{empNo}
+            ORDER BY CR_NO DESC
+            ) 
+            WHERE ROWNUM = 1
+	</select>
+	<select id="selectcrNo" parameterType="String" resultType="String">
+	    SELECT CR_NO
+		FROM chatMember
+		WHERE EMP_NO IN (#{myNo}, #{empNo})
+		GROUP BY CR_NO
+		HAVING COUNT(DISTINCT EMP_NO) = 2
+		AND CR_NO NOT IN (
+		    SELECT CR_NO
+		    FROM chatMember
+		    WHERE EMP_NO NOT IN (#{myNo}, #{empNo})
+		)
+	</select>
+	
+	<insert id="createChatRoom" parameterType="chatRoomVO">
+		insert into CHATROOM(
+			CR_NO, CR_TITLE
+		)values(
+			CHATROOM_SEQUENCE.NEXTVAL, #{crTitle}
+		)
+	</insert>
+	
+	<select id="selectCrNoMaxCount" resultType="String">
+		SELECT MAX(TO_NUMBER(CR_NO)) FROM CHATROOM
+	</select>
+	
+	
+	<select id="selectMemberChatNo" parameterType="String" resultType="chatVO">
+		SELECT CHAT_NO
+		FROM (
+		    SELECT CHAT_NO
+		    FROM CHAT
+		    WHERE CR_NO = #{crNo}
+		    ORDER BY CHAT_NO DESC
+		) WHERE ROWNUM = 1
+	</select>
+	
+	<select id="selectRoomTitle" parameterType="String" resultType="String">
+		SELECT CR_TITLE
+		FROM CHATROOM
+		WHERE CR_NO = #{crNo}
+	</select>
+	
+	<insert id="insert" parameterType="ChatVO">
+		insert into chat(
+			CHAT_NO, CHAT_DATE, CHAT_MSG, CHASENDER_EMPNO, CHAT_UNCHECK, CR_NO
+		)values(
+			CHAT_SEQUENCE.NEXTVAL, sysdate, #{chatMsg}, #{chasenderEmpno}, #{chatUncheck}, #{crNo}
+		)
+	</insert>
+	
+	<select id="selectcrUser" parameterType="String" resultType="String">
+		SELECT CR_NO
+		FROM CHATMEMBER
+		WHERE EMP_NO = #{chatuser} OR EMP_NO =#{empNo}
+		GROUP BY CR_NO HAVING 
+		COUNT(DISTINCT EMP_NO) = 2 
+	</select>
+	
+	<select id="selectRoomList" parameterType="String" resultType="String">
+		SELECT 
+		CR_NO
+		FROM chatmember
+		WHERE EMP_NO = #{empNo} 
+	</select>
+	
+	<select id="selectChatUser2" parameterType="String" resultType="String">
+		select
+		    emp_no
+		from chatmember
+		where cr_no = #{crNo}
+	</select>
+	
+	<select id="selectUserList" parameterType="String" resultType="String">
+		SELECT EMP_NO
+		FROM emp
+		WHERE emp_no != #{empNo}	
+	</select>
+	
+	<select id="selectCRMemNum" parameterType="String" resultType="int">
+		SELECT COUNT(EMP_NO)
+		FROM CHATMEMBER
+		WHERE CR_NO = #{crNo}
+	</select>
+	
+	<select id="setCrNo" parameterType="list" resultType="String">
+	    SELECT CR_NO
+	    FROM chatMember
+	    WHERE EMP_NO IN 
+	    <foreach item="empNo" collection="list" open="(" separator="," close=")">
+	        #{empNo}
+	    </foreach>
+	    GROUP BY CR_NO
+	    HAVING COUNT(DISTINCT EMP_NO) = 2
+	</select>
+	
+	<select id="selectChatUser" parameterType="String" resultMap="chatSelectResultMap">
+	    SELECT 
+		    E.EMP_NO,
+		    E.EMP_NAME,
+		    E.EMP_PHOTO,
+		    D.DEPT_NAME
+		FROM EMP E
+		LEFT JOIN DEPT D ON E.DEPT_CD = D.DEPT_CD
+		WHERE E.EMP_NO != #{empNo}
+	</select>
+
+	
+	<select id="selectChatRoom" parameterType="String" resultMap="chatSelectResultMap">
+		SELECT
+		    C.CR_NO,
+		    MAX(CM.CRCM_TITLE) AS CRCM_TITLE,
+		    (SELECT MAX(CH1.CHAT_NO) FROM CHAT CH1 WHERE CH1.CR_NO = C.CR_NO) AS CHAT_NO,
+		    (SELECT MAX(CH2.CHAT_DATE) FROM CHAT CH2 WHERE CH2.CR_NO = C.CR_NO) AS CHAT_DATE,
+		    (SELECT MAX(CH3.CHAT_MSG) FROM CHAT CH3 WHERE CH3.CR_NO = C.CR_NO) AS CHAT_MSG
+		FROM
+		    CHATROOM C
+		JOIN
+		    CHATMEMBER CM ON C.CR_NO = CM.CR_NO
+		WHERE
+		    CM.EMP_NO = #{empNo}
+		GROUP BY
+		    C.CR_NO
+		ORDER BY CHAT_DATE DESC
+	</select>
+	
+	<select id="selectRoomDetail" parameterType="String" resultMap="chatRoomDTLMap">
+		SELECT
+	        C.CHAT_NO,
+	        C.CHAT_DATE,
+	        C.CHAT_MSG,
+	        C.CHASENDER_EMPNO,
+	        C.CHAT_UNCHECK,
+	        C.CR_NO,
+	        CM.EMP_PHOTO
+	    FROM CHAT C
+	    LEFT JOIN EMP CM ON C.CHASENDER_EMPNO = CM.EMP_NO
+	    WHERE C.CR_NO = #{crNo}
+	    ORDER BY C.CHAT_NO ASC
+	</select>	
+	
+	<!-- 채팅방 유무 확인 -->
+	<select id="checkChatRoomExists" parameterType="map" resultType="int">
+	    SELECT CR_NO
+	    FROM ChatMember
+	    WHERE EMP_NO IN
+	    <foreach collection="empNolist" item="empNo" open="(" separator="," close=")">
+	        #{empNo}
+	    </foreach>
+	    GROUP BY CR_NO
+	    HAVING COUNT(EMP_NO) = #{listSize}
+	</select>
+
+	<select id="selectCrNoRoom" parameterType="String" resultType="chatRoomVO">
+		SELECT CR_NO, CR_TITLE
+		FROM CHATROOM
+		WHERE CR_NO = #{crNo}
+	</select>
+
+	<!-- 방번호로 채팅방 제목검색 -->
+	<select id="selectChatRoomTitle" parameterType="String" resultType="String">
+		SELECT CRCM_TITLE
+		FROM CHATMEMBER
+		WHERE CR_NO = #{crNo} AND EMP_NO = #{empNo} 
+	</select>
+	
+</mapper>

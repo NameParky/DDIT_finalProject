@@ -1,0 +1,77 @@
+package kr.or.ddit.handler;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import kr.or.ddit.mapper.EmpMapper;
+import kr.or.ddit.mapper.NotifyMapper;
+import kr.or.ddit.vo.NotifyVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class NotifyHandler extends TextWebSocketHandler {
+
+	@Inject
+	NotifyMapper notiMapper;
+	@Inject
+	EmpMapper empMapper;
+
+	// 세션에 접속한 인원들의 아이디를 키값으로 세션 정보 담기위한 맵
+	Map<String, WebSocketSession> userSessionMap = new HashMap<String, WebSocketSession>();
+
+	@Override
+	public void afterConnectionEstablished(WebSocketSession session) throws Exception { // 소켓 연결
+		log.info("afterConnectionEstablished 실행...! 웹소켓 연결 성공 session 확인" + session.getId());
+		// 세션 접속 인원 리스트에 담기
+		String senderId = session.getPrincipal().getName();
+		log.info("senderId : " + senderId);
+		// 로그인한 사람의 정보 맵에 아이디를 키로 세션 정보 담기 
+		userSessionMap.put(senderId, session);
+//		log.info("현재 접속자 수 {}", userSessionMap.size());
+		log.info("userSessionMap : " + userSessionMap.get(senderId));
+		log.info("userSessionMap " +userSessionMap.get(senderId));
+
+		super.afterConnectionEstablished(session);
+	}
+
+	@Override
+	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception { // 소켓에 들어오는 메세지를 처리
+		log.info("메세지 들어오는 지 확인 : " + "소켓" + session + "  , 메세지 : " + message);
+
+		log.info("message.getPayload().toString() : " + message.getPayload().toString());
+	
+		String notifyTypese = message.getPayload().toString();
+		
+		TextMessage tmpMsg = new TextMessage("회사일정이 추가되었습니다");
+		 
+		List<NotifyVO> notiEmpList = notiMapper.selectNotiList(notifyTypese);
+		for(int i=0; i<notiEmpList.size(); i++) {
+			log.info("여기가 돌아가는지 확인 "+notiEmpList);
+			log.info("여기가 돌아가는지 확인 "+notiEmpList.get(i).getNotifyEmpno());
+			if(userSessionMap.get(notiEmpList.get(i).getNotifyEmpno()) != null) {
+				log.info("여기가 돌아가는지 확인 : "+userSessionMap.get(notiEmpList.get(i).getNotifyEmpno()));
+				userSessionMap.get(notiEmpList.get(i).getNotifyEmpno()).sendMessage(tmpMsg);
+			}else {
+				continue;
+			}
+		}
+
+		super.handleTextMessage(session, message);
+	}
+
+	@Override
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception { // 소켓 연결 종료
+		log.info("소켓 연결 종료...!");
+		super.afterConnectionClosed(session, status);
+	}
+
+	
+}

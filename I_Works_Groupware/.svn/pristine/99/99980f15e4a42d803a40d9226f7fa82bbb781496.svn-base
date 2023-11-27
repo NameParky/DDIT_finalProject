@@ -1,0 +1,14 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.RoomResVO;
+
+public interface IRoomService {
+	public List<RoomResVO> selectRoomList(RoomResVO roomVO);
+	public ServiceResult insertAsRent(RoomResVO roomVO);
+	
+	// 나의 예약 목록
+	public List<RoomResVO> myRoomRsvList(String empNo);
+}

@@ -1,0 +1,39 @@
+package kr.or.ddit.service.impl;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.mapper.TodoMapper;
+import kr.or.ddit.service.ITodoService;
+import kr.or.ddit.vo.TodoListVO;
+
+@Service
+public class TodoServiceImpl implements ITodoService {
+	 
+	@Inject
+	private TodoMapper todoMapper;
+	
+	@Override
+	public ServiceResult registerTodo(TodoListVO todoListVO) {
+		ServiceResult result = null;
+		int status = todoMapper.registerTodo(todoListVO);
+		if(status != 0) {
+			result = ServiceResult.OK;
+		}else {
+			result = ServiceResult.FAILED;
+		}
+		return result;
+	}
+
+	@Override
+	public List<TodoListVO> selectTodoList(String empNo) {
+		
+		return todoMapper.selectTodoList(empNo);
+	}
+	
+	
+}

@@ -1,0 +1,9 @@
+package kr.or.ddit.mapper;
+
+import kr.or.ddit.vo.NotifyVO;
+
+public interface NotifyMapper {
+
+	public void insertNotify(NotifyVO notifyVO);
+	
+}

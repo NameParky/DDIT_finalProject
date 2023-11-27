@@ -1,0 +1,88 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>임시저장 문서</title>
+</head>
+<body>
+	<h2>임시저장 문서</h2>
+	<br/>
+		<div>
+			<button class="btn btn-phoenix-danger fs"  id="delBtn" style="margin-left: 96%;">
+				<svg class="svg-inline--fa fa-trash" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="trash" role="img"
+					xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg="">
+					<path fill="currentColor"d="M135.2 17.69C140.6 6.848 151.7 0 163.8 0H284.2C296.3 0 307.4 6.848 
+					312.8 17.69L320 32H416C433.7 32 448 46.33 448 64C448 81.67 433.7 96 416 96H32C14.33 96 0 81.67 0 
+					64C0 46.33 14.33 32 32 32H128L135.2 17.69zM394.8 466.1C393.2 492.3 372.3 512 346.9 512H101.1C75.75 512 54.77 492.3 53.19 
+					466.1L31.1 128H416L394.8 466.1z"></path></svg>
+				<!-- <span class="fas fa-trash"></span> Font Awesome fontawesome.com -->
+			</button>
+		</div>
+	<div id="tableExample4" data-list='{"valueNames":["chkBox","drftTitle","drtfDate"],"page":10,"pagination":true,"filter":{"key":"writeDate"}}'>
+		 <div class="table-responsive">
+		    <table class="table table-sm mb-0" style="text-align: center;">
+		      <thead>
+		        <tr class="bg-light">
+		          <th class="ps-8" style="width: 100px;"><input class="form-check-input" id="totalChk" type="checkbox" /></th>
+		          <th class="" style="width: 200px;">기안서 제목</th>
+		          <th class="" style="width: 300px;">작성일</th>
+		        </tr>
+		      </thead>
+		      <c:choose >
+		      	<c:when test="${empty tempSaveList }">
+		      		<p>임시저장 문서가 없습니다.</p>
+		      	</c:when>
+		      	<c:otherwise>
+				   <tbody class="list">
+		      	  	 <c:forEach items="${tempSaveList}" var="tsList">
+				        <tr>
+				          <td class="align-middle ps-8 chkBox"><input class="form-check-input" type="checkbox" name="chk" /></td>
+				          <td class="align-middle drftTitle"><a href="/draft/tempsavedetail.do?drftCd=${tsList.drftCd }">${tsList.drftTitle}</a></td>
+				          <td class="align-middle drtfDate py-3 pe-3">${tsList.drftDate}</td>
+				        </tr>
+			      	 </c:forEach>
+			       </tbody>
+		      	</c:otherwise>
+		      </c:choose>
+		    </table>
+		  </div>
+		  <div class="d-flex justify-content-center mt-3">
+		  	<button class="page-link" data-list-pagination="prev">
+		  		<span class="fas fa-chevron-left"></span>
+		  	</button>
+		    	<ul class="mb-0 pagination"></ul>
+		    <button class="page-link pe-0" data-list-pagination="next">
+		    	<span class="fas fa-chevron-right"></span>
+		    </button>
+		  </div>
+		</div>
+	<br/>
+</body>
+<script type="text/javascript">
+$(document).ready(function() {
+	/* 체크박스 */
+	$("#totalChk").click(function(){
+		if($("#totalChk").is(":checked")) $("input[name=chk]").prop("checked", true);
+		else $("input[name=chk]").prop("checked", false);
+	});
+
+	$("input[name=chk]").click(function(){
+		var total = $("input[name=chk]").length;
+		var checked = $("input[name=chk]:checked").length;
+		
+		if(total != checked) $("#totalChk").prop("checked", false);
+		else $("#totalChk").prop("checked", true); 
+	});
+});
+
+
+var delBtn = $("#delBtn");
+delBtn.on("click", function(){
+	if(confirm("정말 삭제하시겠습니까?"));	
+		
+}); 
+</script>
+</html>

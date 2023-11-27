@@ -1,0 +1,66 @@
+package kr.or.ddit.controller.mail;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class MailController {
+	
+	// 메일 보내기로 이동
+	@RequestMapping(value="/sendmail.do", method=RequestMethod.GET)
+	public String SendMail(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/sendMail";
+	}
+
+	// 받은 메일함으로 이동
+	@RequestMapping(value="/receivedmail.do", method=RequestMethod.GET)
+	public String ReceivedMail(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/receivedMail";
+	}
+	
+	// 보낸 메일함으로 이동
+	@RequestMapping(value="/sendedmail.do", method=RequestMethod.GET)
+	public String SendedMail(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/sendedMail";
+	}
+	
+	// 나에게 보낸메일함으로 이동
+	@RequestMapping(value="/receivedmyselfmail.do", method=RequestMethod.GET)
+	public String ReceivedMyselfMail(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/receivedMyselfMail";
+	}
+	
+	// 나에게 메일 보내기로 이동
+	@RequestMapping(value="/sendtome.do", method=RequestMethod.GET)
+	public String sendToMe(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/sendToMe";
+	}
+	
+	// 중요메일함으로 이동
+	@RequestMapping(value="/importantmail.do", method=RequestMethod.GET)
+	public String importantMail(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/importantMail";
+	}
+	
+	// 삭제한메일함으로 이동
+	@RequestMapping(value="/deletedmail.do", method=RequestMethod.GET)
+	public String deletedMail(Model model) {
+		String mailBar = "mail";
+		model.addAttribute("mailBar", mailBar);
+		return "main/mail/deletedMail";
+	}
+}

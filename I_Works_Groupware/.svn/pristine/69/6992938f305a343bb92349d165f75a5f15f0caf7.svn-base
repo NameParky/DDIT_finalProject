@@ -1,0 +1,12 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.TodoListVO;
+
+public interface TodoMapper {
+	
+	public int registerTodo(TodoListVO todoListVO);
+
+	public List<TodoListVO> selectTodoList(String empNo);
+}

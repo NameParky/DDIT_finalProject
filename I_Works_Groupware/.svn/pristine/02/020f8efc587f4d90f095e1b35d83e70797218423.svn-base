@@ -1,0 +1,20 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import org.springframework.web.socket.TextMessage;
+
+import kr.or.ddit.vo.ChatRoomDTLVO;
+import kr.or.ddit.vo.ChatVO;
+import kr.or.ddit.vo.chatSelectResultVO;
+
+public interface IChatService {
+	// 채팅 데이터 저장
+	public void insertChatting(String msg, String crNo, String empNo);
+	// 채팅방 조회
+	public List<chatSelectResultVO> selectChatRoom(String chatuser);
+	// 유저 리스트 조회
+	public List<chatSelectResultVO> selectChatUser(String chatuser);
+	// 채팅방 상세보기 조회
+	public List<ChatRoomDTLVO> selectRoomDetail(ChatVO chat);
+}

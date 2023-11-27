@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.AuthMapper">
+
+	<resultMap type="atrzfVO" id="atrzfMap">
+		<id property="atrzfCd" column="ATRZF_CD"/>
+		<result property="atrzfCd" column="ATRZF_CD"/>
+		<result property="atrzfName" column="ATRZF_NAME"/>
+		<result property="atrzfContent" column="ATRZF_CONTENT" jdbcType="CLOB" javaType="java.lang.String"/>
+	</resultMap>
+	
+	<select id="selectAtrzForm" resultMap="atrzfMap">
+		SELECT ATRZF_CD, ATRZF_NAME, ATRZF_CONTENT
+		FROM AUTHORIZATIONFORM
+		order by ATRZF_NAME
+	</select>
+	
+	<select id="selectAtrzContent" parameterType="string" resultMap="atrzfMap">
+		SELECT
+			ATRZF_NAME, ATRZF_CONTENT, ATRZF_CD 
+		FROM AUTHORIZATIONFORM
+		where ATRZF_CD = #{atrzfCd}
+	</select>
+	
+	<resultMap type="draftVO" id="draftMap">
+		<id property="drftCd" column="DRFT_CD"/>
+		<result property="drftCd" column="DRFT_CD"/>
+		<result property="drftTitle" column="DRFT_TITLE"/>
+		<result property="drftContent" column="DRFT_CONTENT"/>
+		<result property="drftDate" column="DRFT_DATE"/>
+		<result property="drftStartdate" column="DRFT_STARTDATE"/>
+		<result property="drftEnddate" column="DRFT_ENDDATE"/>
+		<result property="drftReason" column="DRFT_REASON"/>
+		<result property="drftSubmitse" column="DRFT_SUBMITSE"/>
+		<result property="drftPrgrsse" column="DRFT_PRGRSSE"/>
+		<result property="drftAprvse" column="DRFT_APRVSE"/>
+		<result property="drftMemo" column="DRFT_MEMO"/>
+		<result property="atrzfCd" column="ATRZF_CD"/>
+		<result property="empNo" column="EMP_NO"/>
+		<result property="empName" column="EMP_NAME"/>
+		<collection property="pathList" resultMap="pathMap"/>
+		<collection property="refList" resultMap="refMap"/>
+	</resultMap>
+	
+	<resultMap type="pathVO" id="pathMap">
+		<result property="atrzpCd" column="ATRZP_CD"/>
+		<result property="atrzpEmpno" column="ATRZP_EMPNO"/>
+		<result property="atrzpOrder" column="ATRZP_ORDER"/>
+		<result property="atrzpStatusse" column="ATRZP_STATUSSE"/>
+		<result property="atrzpDate" column="ATRZP_DATE"/>
+		<result property="drftCd" column="DRFT_CD"/>
+		<result property="deptName" column="DEPT_NAME"/>
+		<result property="empName" column="EMP_NAME"/>
+		<result property="cdName" column="CD_NAME"/>
+	</resultMap>
+	
+	<resultMap type="refVO" id="refMap">
+		<result property="drftCd" column="ATRZP_CD"/>
+		<result property="refEmpno" column="REF_EMPNO"/>
+		<result property="deptName" column="DEPT_NAME"/>
+		<result property="empName" column="EMP_NAME"/>
+		<result property="cdName" column="CD_NAME"/>
+	</resultMap>
+	
+	<!-- 임시저장 결재양식--> 
+	<insert id="draftTempSaveInsert" parameterType="draftVO"> 
+		insert into  drafting (
+					 DRFT_CD, DRFT_TITLE, DRFT_CONTENT, DRFT_DATE, 
+		             DRFT_STARTDATE, DRFT_ENDDATE, DRFT_REASON, 
+		             DRFT_SUBMITSE, DRFT_PRGRSSE, ATRZF_CD, EMP_NO
+		)values(
+				'drft00'||drft_seq.nextval, #{drftTitle}, #{drftContent}, sysdate,
+		         #{drftStartdate}, #{drftEnddate}, NVL(#{drftReason}, NULL),
+		        '임시저장', '임시저장', #{atrzfCd}, #{empNo}
+		)
+	</insert>
+	
+	<!-- 임시저장// 결재상신 버튼  -->
+	<update id="approval" parameterType="draftVO"> 
+		UPDATE drafting
+	    SET
+	        drft_title = #{drftTitle}
+	        , drft_content = #{drftContent}
+	        , drft_date = sysdate
+	        , drft_startdate = #{drftStartdate}
+	        , drft_enddate = #{drftEnddate}
+	        , drft_reason = #{drftReason}
+	        , drft_submitse = '제출'
+	        , drft_prgrsse = '진행중'
+		where emp_no = #{empNo} and drft_cd = #{drftCd}
+	</update>
+	
+	<!-- 기안서 작성// 결재상신 버튼  -->	
+	<insert id="dfApproval" parameterType="draftVO">
+	insert into  drafting (
+					 DRFT_CD, DRFT_TITLE, DRFT_CONTENT, DRFT_DATE, 
+		             DRFT_STARTDATE, DRFT_ENDDATE, DRFT_REASON, 
+		             DRFT_SUBMITSE, DRFT_PRGRSSE, ATRZF_CD, EMP_NO
+		)values(
+				'drft00'||drft_seq.nextval, #{drftTitle}, #{drftContent}, sysdate,
+		         #{drftStartdate}, #{drftEnddate}, NVL(#{drftReason}, NULL),
+		        '제출', '진행중', #{atrzfCd}, #{empNo}
+		)
+	</insert>	
+		
+	
+	<!-- 결재양식 코드를 가지고 결재선 여러번 insert 3명이니까   -->
+	<insert id="atrzPathInsert" parameterType="pathVO" useGeneratedKeys="true"> <!-- 임시저장 --> 
+		<selectKey keyProperty="drftCd" resultType="string" order="BEFORE">
+			SELECT DRFT_CD
+			    FROM drafting
+			WHERE DRFT_CD = 
+					'drft00'||(select MAX(TO_NUMBER(SUBSTR(DRFT_CD, 5)))from drafting) 
+		</selectKey>
+		insert into AUTHORIZATIONPATH (
+				ATRZP_CD, ATRZP_EMPNO, ATRZP_ORDER, 
+				ATRZP_STATUSSE, DRFT_CD
+			)values(
+				'atrzp00'||atrzp_seq.nextval, #{atrzpEmpno, jdbcType=VARCHAR}, #{atrzpOrder},
+				'대기', #{drftCd}
+			)
+	</insert>
+	
+	<insert id="refInsert" parameterType="refVO" useGeneratedKeys="true">
+		<selectKey keyProperty="drftCd" resultType="string" order="BEFORE">
+			SELECT DRFT_CD
+			    FROM drafting
+			WHERE DRFT_CD = 
+					'drft00'||(select MAX(TO_NUMBER(SUBSTR(DRFT_CD, 5)))from drafting)
+		</selectKey>
+		insert into DRAFTINGREFERENCE(
+			DRFT_CD, REF_EMPNO
+		)values(
+			#{drftCd}, #{refEmpno, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<select id="selectTempSaveList" parameterType="String" resultType="draftVO">
+		select 
+		    DRFT_CD, DRFT_TITLE, DRFT_CONTENT, DRFT_DATE, 
+		    DRFT_STARTDATE, DRFT_ENDDATE, DRFT_REASON, 
+		    DRFT_SUBMITSE, DRFT_PRGRSSE, DRFT_APRVSE, DRFT_MEMO, ATRZF_CD, EMP_NO
+		from drafting
+			where EMP_NO = #{empNo} and  DRFT_SUBMITSE = '임시저장'
+		order by DRFT_DATE desc
+	</select>
+	
+	<!-- 임시저장 디테일 -->
+	<select id="tempSaveDetail" parameterType="draftVO" resultType="draftVO">
+		SELECT
+		    drft_cd,
+		    drft_title,
+		    drft_content,
+		    drft_date,
+		    drft_startdate,
+		    drft_enddate,
+		    drft_reason,
+		    drft_submitse,
+		    drft_prgrsse,
+		    drft_aprvse,
+		    drft_memo,
+		    atrzf_cd,
+		    emp_no
+		FROM
+		    drafting
+		where EMP_NO = #{empNo} and DRFT_SUBMITSE = '임시저장' and drft_cd = #{drftCd}
+	</select>
+	
+	<select id="pathSelect" parameterType="string" resultMap="pathMap">
+		select e.EMP_NO, e.EMP_SIGN, e.EMP_NAME, d.DEPT_NAME, cd.CD_NAME, pa.atrzp_order, pa.ATRZP_STATUSSE, pa.ATRZP_DATE, pa.atrzp_empno
+			from EMP e
+		left outer join DEPT d on(e.DEPT_CD = d.DEPT_CD)
+		left outer join CODE cd on(e.EMP_RANK = cd.CD_CD)
+		left outer join AUTHORIZATIONPATH pa on(pa.ATRZP_EMPNO = e.EMP_NO)
+		left outer join drafting df on(pa.DRFT_CD = df.DRFT_CD)
+			where df.drft_cd = #{drftCd}
+		order by ATRZP_ORDER
+	</select>
+	
+	<select id="refSelect" parameterType="string" resultMap="refMap">
+		select e.EMP_NO, e.EMP_NAME, d.DEPT_NAME, cd.CD_NAME, ref.REF_EMPNO
+			from EMP e
+		left outer join DEPT d on(e.DEPT_CD = d.DEPT_CD)
+		left outer join CODE cd on(e.EMP_RANK = cd.CD_CD)
+		left outer join DRAFTINGREFERENCE ref on(ref.REF_EMPNO = e.EMP_NO)
+		left outer join drafting df on(ref.DRFT_CD = df.DRFT_CD)
+			where df.drft_cd = #{drftCd}
+	</select>
+	
+	<delete id="refDelete" parameterType="String">
+		DELETE FROM draftingreference WHERE drft_cd = #{drftCd}
+	</delete>
+	
+	<delete id="authPathDelete" parameterType="String">
+		DELETE FROM authorizationpath WHERE drft_cd = #{drftCd}
+	</delete>
+	
+	<delete id="tempSaveDelete" parameterType="String">
+		DELETE FROM drafting WHERE drft_cd = #{drftCd}
+	</delete>
+	
+	
+	<!-- 진행중 문서함 -->
+	<select id="selectProgList" parameterType="String" resultType="draftVO">
+		select distinct
+		    d.DRFT_CD, DRFT_TITLE, DRFT_DATE, 
+		    DRFT_STARTDATE, DRFT_ENDDATE, DRFT_REASON, 
+		    DRFT_SUBMITSE, DRFT_PRGRSSE, DRFT_APRVSE, DRFT_MEMO, ATRZF_CD, EMP_NO,
+		    pa.ATRZP_STATUSSE, pa.ATRZP_DATE
+		from drafting d
+		left outer join AUTHORIZATIONPATH pa on (pa.DRFT_CD = d.DRFT_CD)
+		    where EMP_NO = #{empNo} and  DRFT_SUBMITSE = '제출' and 
+		    DRFT_PRGRSSE = '진행중'
+		order by DRFT_DATE desc
+	</select>
+	
+	<!-- 진행중 문서 디테일 -->
+	<select id="progDetail" parameterType="draftVO" resultType="draftVO">
+		SELECT
+		    drft_cd,
+		    drft_title,
+		    drft_content,
+		    drft_date,
+		    drft_startdate,
+		    drft_enddate,
+		    drft_reason,
+		    drft_submitse,
+		    drft_prgrsse,
+		    drft_aprvse,
+		    drft_memo,
+		    atrzf_cd,
+		    emp_no
+		FROM
+		    drafting
+		where EMP_NO = #{empNo} and drft_cd = #{drftCd}
+	</select>
+	
+	<!-- 반려문서함 -->
+	<select id="selectRetList" parameterType="draftVO" resultType="draftVO">
+		select distinct
+	        d.DRFT_CD, DRFT_TITLE, DRFT_DATE, 
+	        DRFT_STARTDATE, DRFT_ENDDATE, DRFT_REASON, 
+	        DRFT_SUBMITSE, DRFT_PRGRSSE, DRFT_APRVSE, DRFT_MEMO, ATRZF_CD, EMP_NO,
+	        pa.ATRZP_STATUSSE, pa.ATRZP_DATE
+	    from drafting d
+	    left outer join AUTHORIZATIONPATH pa on (pa.DRFT_CD = d.DRFT_CD)
+	        where EMP_NO = #{empNo} and  DRFT_PRGRSSE = '반려'
+	    order by DRFT_DATE desc		
+	</select>
+	
+	<!-- 반려문서 디테일 -->
+	<select id="retDetail" parameterType="draftVO" resultType="draftVO">
+		SELECT
+		    drft_cd,
+		    drft_title,
+		    drft_content,
+		    drft_date,
+		    drft_startdate,
+		    drft_enddate,
+		    drft_reason,
+		    drft_submitse,
+		    drft_prgrsse,
+		    drft_aprvse,
+		    drft_memo,
+		    atrzf_cd,
+		    emp_no
+		FROM
+		    drafting
+		where EMP_NO = #{empNo} and drft_cd = #{drftCd}
+	</select>
+	
+	<!-- 완료문서함 -->
+	<select id="selectComList" parameterType="draftVO" resultType="draftVO">
+		select distinct
+	        d.DRFT_CD, DRFT_TITLE, DRFT_DATE, 
+	        DRFT_STARTDATE, DRFT_ENDDATE, DRFT_REASON, 
+	        DRFT_SUBMITSE, DRFT_PRGRSSE, DRFT_APRVSE, DRFT_MEMO, ATRZF_CD, EMP_NO,
+	        pa.ATRZP_STATUSSE, (select max(to_char(ATRZP_DATE))from AUTHORIZATIONPATH) as ATRZP_DATE 
+	    from drafting d
+	    left outer join AUTHORIZATIONPATH pa on (pa.DRFT_CD = d.DRFT_CD)
+	        where EMP_NO = #{empNo} and  DRFT_PRGRSSE = '완료'
+	    order by DRFT_DATE desc
+	</select>
+	
+	<!-- 완료문서 디테일 -->
+	<select id="comDetail" parameterType="draftVO" resultType="draftVO">
+		SELECT
+			    drft_cd,
+			    drft_title,
+			    drft_content,
+			    drft_date,
+			    drft_startdate,
+			    drft_enddate,
+			    drft_reason,
+			    drft_submitse,
+			    drft_prgrsse,
+			    drft_aprvse,
+			    drft_memo,
+			    atrzf_cd,
+			    emp_no
+			FROM
+			    drafting
+			where EMP_NO = #{empNo} and drft_cd = #{drftCd}
+	</select>
+	
+	
+	
+	<!-- 결재대기 문서 / 내가 결재자로 지정, 결재상태가 '대기'인 문서-->
+	<select id="selectWaitList" parameterType="string" resultType="draftVO">
+		SELECT distinct
+		    d.DRFT_CD, drft_title, drft_date, e.EMP_NAME, d.EMP_NO, pa.ATRZP_STATUSSE, pa.ATRZP_EMPNO, d.DRFT_PRGRSSE
+		    FROM drafting d
+		    left outer join emp e on(e.EMP_NO = d.EMP_NO)
+		    left outer join AUTHORIZATIONPATH pa on(d.DRFT_CD = pa.DRFT_CD)
+		where pa.ATRZP_EMPNO = #{EmpNo} and pa.ATRZP_STATUSSE = '대기'
+			order by drft_date desc	
+	</select>
+	
+	<!-- 결재대기 문서 디테일 -->
+	<select id="waitDetail" parameterType="string" resultType="draftVO">
+		SELECT 
+		    drft_cd, drft_title, drft_content, drft_date, drft_startdate, drft_enddate, drft_reason, 
+		    drft_submitse, drft_prgrsse, drft_aprvse, drft_memo, atrzf_cd, d.emp_no, e.emp_name, d.DEPT_NAME, cd.CD_NAME
+		FROM drafting d
+		    left outer join emp e on(d.emp_no = e.emp_no)
+		    left outer join DEPT d on(e.DEPT_CD = d.DEPT_CD)
+		    left outer join CODE cd on(e.EMP_RANK = cd.CD_CD)
+		where drft_cd = #{drftCd}
+	</select>
+	
+	
+	<!-- 참조문서  리스트-->
+	<select id="selectRefList" parameterType="String" resultType="draftVO">
+		SELECT distinct
+			d.DRFT_CD, drft_title, drft_date, e.EMP_NAME, d.EMP_NO, pa.ATRZP_STATUSSE
+			FROM drafting d
+			left outer join emp e on(e.EMP_NO = d.EMP_NO)
+			left outer join AUTHORIZATIONPATH pa on(d.DRFT_CD = pa.DRFT_CD)
+			left outer join DRAFTINGREFERENCE ref on(d.DRFT_CD = ref.DRFT_CD)
+		where ref.ref_EMPNO = #{empNo}
+		order by drft_date desc	
+	</select>
+	
+	<!-- 참조문서 디테일  -->
+	<select id="refDetail" parameterType="string" resultType="draftVO">
+		SELECT 
+			drft_cd, drft_title, drft_content, drft_date, drft_startdate, drft_enddate, drft_reason, 
+			drft_submitse, drft_prgrsse, drft_aprvse, drft_memo, atrzf_cd, d.emp_no, e.emp_name, d.DEPT_NAME, cd.CD_NAME
+		FROM drafting d
+			left outer join emp e on(d.emp_no = e.emp_no)
+			left outer join DEPT d on(e.DEPT_CD = d.DEPT_CD)
+			left outer join CODE cd on(e.EMP_RANK = cd.CD_CD)
+		where drft_cd = #{drftCd}
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<update id="updateupdateAtrzForm" parameterType="atrzfVO">
+		UPDATE
+			authorizationform
+		SET
+		   atrzf_content = #{atrzfContent}
+		WHERE
+		        atrzf_cd = #{atrzfCd}
+	</update>
+	<!-- 기안양식폼 코드 생성을 위한 끝번호 추출 -->
+	<select id="getatrzfCd" resultType="atrzfVO">
+		select 
+			atrzf_cd, to_number(substr(atrzf_cd,3)) as atrzfCustomCd
+		from 
+			AUTHORIZATIONFORM
+		order by 1 desc	
+	</select>
+	
+	<!-- 기안양식 폼 생성 -->
+	<insert id="createAtrzf" parameterType="atrzfVO">
+		        
+    INSERT INTO authorizationform (
+	    atrzf_cd, atrzf_name, atrzf_content
+	) VALUES (
+	    #{atrzfCd}, #{atrzfName}, #{atrzfContent}
+	)
+	</insert>
+	<!-- 기안양식 폼 삭제 -->
+	<delete id="deleteAtrzfForm" parameterType="atrzfVO">
+		delete from authorizationform
+		where atrzf_cd = #{atrzfCd}
+	</delete>
+	
+</mapper>

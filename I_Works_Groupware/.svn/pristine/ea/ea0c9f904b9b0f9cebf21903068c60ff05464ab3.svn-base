@@ -1,0 +1,27 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.BoardFeventVO;
+import kr.or.ddit.vo.CommentVO;
+import kr.or.ddit.vo.FileVO;
+
+public interface IBoardFeventService {
+	public List<BoardFeventVO> feventList();
+	public void insertFevent(BoardFeventVO fevent, HttpServletRequest req, HttpServletResponse res);
+	public BoardFeventVO selectfevent(String feNo);
+	public List<FileVO> selectfeventfilefeNo(String feNo);
+	public List<CommentVO> selectfeventComment(String feNo);
+	public String selectUserName(String empNo);
+	public String selectUserPhoto(String empNo);
+	public List<FileVO> selectfeventfile(String fileNo);
+	public ServiceResult feventModify(HttpServletRequest req, BoardFeventVO feventVO);
+	public ServiceResult deletefevent(HttpServletRequest req, String feNo);
+	public CommentVO insertComment(CommentVO commentVO);
+	public void removeComment(String cmNo);
+	public void modifyComment(CommentVO commentVO);
+}

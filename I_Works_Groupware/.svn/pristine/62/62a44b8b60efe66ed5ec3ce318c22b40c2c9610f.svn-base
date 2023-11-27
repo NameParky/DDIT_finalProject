@@ -1,0 +1,29 @@
+package kr.or.ddit.service.impl;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mapper.NotifyMapper;
+import kr.or.ddit.service.INotifyService;
+import kr.or.ddit.vo.NotifyVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class NotifyServiceImpl implements INotifyService {
+	
+	@Inject
+	NotifyMapper notiMapper;
+	
+	/**
+	 * 미확인 알림 갯수 가져오기
+	 */
+	@Override
+	public int selecCntNotify(String empNo) {
+		
+		int cnt = notiMapper.selecCntNotify(empNo);
+		return cnt;
+	}
+	 
+}

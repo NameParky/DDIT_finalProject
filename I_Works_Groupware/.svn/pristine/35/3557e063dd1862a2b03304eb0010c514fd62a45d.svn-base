@@ -1,0 +1,127 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>완료 문서</title>
+</head>
+<body>
+<h2>완료 문서</h2>
+	<br/>
+	<div class="card-body">
+		<div class="col-md-12">
+			<textarea id="ckeditor" name="" class="form-control" rows="14" readonly="readonly">
+				<!-- 양식명  --> 
+				<h1 style="text-align: center;">연차신청서</h1>
+				
+				<!-- 결재란 시작 -->
+				<div>
+					<table border="1" style="width: 400px; float: right; text-align: center; border-collapse: collapse; table-layout: fixed" >
+						<tbody>
+							<tr>
+								<td rowspan="4" style="width: 20px">결재란</td>
+							</tr>
+							<tr>
+								<td class="cke_table-faked-selection">이나은</td>
+								<td class="cke_table-faked-selection">김재용</td>
+								<td class="cke_table-faked-selection">문수빈</td>
+								<td class="cke_table-faked-selection">이종영</td>
+							</tr>
+							<tr style="height: 50px">
+								<td><img src="${pageContext.request.contextPath }/resources/assets/gw/IW_Logo.png"  style="height: 50px;"></td>
+								<td>사인</td>
+								<td>사인</td>
+								<td>사인</td>
+							</tr>
+							<tr>
+								<td>2023.09.30</td>
+								<td>2023.10.05</td>
+								<td></td>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<!-- 결재란 끝 -->
+				<br><br><br><br>
+				
+				<table class="__se_tbl" style="height:350px; width: 100%; margin-top: 0px; border-collapse: collapse; ">
+					<tbody>
+						<tr>
+							<td style="background: rgb(221, 221, 221); padding: 5px; border: 1px solid black;  width: 25%; text-align: center; vertical-align: middle;" readonly="readonly">
+								휴가&nbsp;종류
+							</td>
+							<td style="padding: 5px; border: 1px solid black; height: 25px; text-align: left; vertical-align: middle;">
+								<span id="vacationTypeArea" name="select" style="font-size: 11pt; margin-top: 0px; margin-bottom: 0px;"></span> 
+							</td>
+						</tr>
+						<tr>
+							<td style="background: rgb(221, 221, 221); padding: 5px; border: 1px solid black; text-align: center; vertical-align: middle;">
+								기간&nbsp;및&nbsp;일시
+							</td>
+							<td style="padding: 3px; border: 1px solid black; width: 700px; height: 22px; text-align: left;  vertical-align: middle; ">
+								<span unselectable="on" contenteditable="false" class="comp_wrap" data-cid="4" data-dsl="{{calendar:startDate}}" data-wrapper="" style="" data-value="" data-autotype="">
+									<span contenteditable="false" class="comp_active"></span> 
+								</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~&nbsp; 
+								<span unselectable="on" contenteditable="false" class="comp_wrap" data-cid="5" data-dsl="{{calendar:endDate}}" data-wrapper="" style="" data-value="" data-autotype="">
+									<span contenteditable="false" class="comp_active"></span> 
+								</span> 
+							</td>
+						</tr>
+						<tr>
+							<td style="background: rgb(221, 221, 221); padding: 5px; border: 1px solid black; text-align: center; vertical-align: middle;">
+								반차&nbsp;여부
+							</td>
+							<td style="padding: 5px; border: 1px solid black; text-align: left; vertical-align: middle;">
+								<span id="vacationHalfArea" style="line-height: normal; margin-top: 0px; margin-bottom: 0px;"></span> 
+							</td>
+						</tr>
+						<tr>
+							<td style="background: rgb(221, 221, 221); padding: 5px; border: 1px solid black; text-align: center; vertical-align: middle;">
+								연차&nbsp;일수
+							</td>
+							<td style="padding: 3px; border: 1px solid black; text-align: left; vertical-align: middle;">
+								<span id="restPointArea" style="margin-top: 0px; margin-bottom: 0px;"></span>
+								<span id="applyPointArea" style="margin-top: 0px; margin-bottom: 0px;"></span> 
+							</td>
+						</tr>
+						<tr>
+							<td style="background: rgb(221, 221, 221); padding: 5px; border: 1px solid black; text-align: center; vertical-align: middle;">
+								<b style="color: rgb(255, 0, 0);">*</b>&nbsp;휴가&nbsp;사유 
+							</td>
+							<td style="padding: 3px; border: 1px solid black; width: 700px; height: 100px; text-align: left; ">
+								<span unselectable="on" contenteditable="false" class="comp_wrap" data-cid="6" data-dsl="{{textarea:description}}" data-wrapper="" style="width: 100%;" data-value="" data-autotype="">
+									쉬고싶으니까...ㅎ.
+								</span> 
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" style="background: rgb(221, 221, 221);  padding: 20px !important; vertical-align: middle; border: 1px solid black; text-align: left;">
+								 1. 연차의 사용은 근로기준법에 따라 전년도에 발생한 개인별 잔여 연차에 한하여 사용함을 원칙으로 한다. 단, 최초 입사시에는 근로 기준법에 따라 발생 예정된 연차를 차용하여 월 1회 사용 할 수 있다.<br> 
+								 2. 경조사 휴가는 행사일을 증명할 수 있는 가족 관계 증명서 또는 등본, 청첩장 등 제출<br>
+								 3. 공가(예비군/민방위)는 사전에 통지서를, 사후에 참석증을 반드시 제출 
+							</td>
+						</tr>
+					</tbody>
+				</table>			
+			</textarea>
+		</div>
+	</div>
+	<br>
+	<button class="btn btn-outline-info me-1 mb-1" type="button" style="float: right;" id="comList">목록</button>
+</body>
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace("ckeditor");
+	CKEDITOR.config.width ="100%";
+	CKEDITOR.config.height ="470px";
+	
+	var comList = $("#comList");
+	
+	comList.on("click", function(){
+		location.href = "/draft/comdoc.do";
+	});
+});
+</script>
+</html>

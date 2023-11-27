@@ -1,0 +1,47 @@
+package kr.or.ddit.controller.board;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class NoticeBoardController {
+	
+	@RequestMapping(value="/noticemain.do", method=RequestMethod.GET)
+	public String NoticeBoard(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/noticeMain";
+	}
+	
+	
+	@RequestMapping(value="/noticedetail.do")
+	public String NoticeBoardDetail(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/noticeDetail";
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	 * 관리자용
+	 */
+	
+	@RequestMapping(value="/noticewrite.do", method=RequestMethod.GET)
+	public String WriteNoticeBoard(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/noticeWrite";
+	}
+
+}

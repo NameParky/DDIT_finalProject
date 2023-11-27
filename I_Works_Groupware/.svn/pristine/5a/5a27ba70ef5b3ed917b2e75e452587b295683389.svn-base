@@ -1,0 +1,103 @@
+package kr.or.ddit.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mapper.ChatMapper;
+import kr.or.ddit.mapper.EmpMapper;
+import kr.or.ddit.security.CustomUser;
+import kr.or.ddit.service.IChatService;
+import kr.or.ddit.vo.ChatMemberVO;
+import kr.or.ddit.vo.ChatRoomDTLVO;
+import kr.or.ddit.vo.ChatRoomVO;
+import kr.or.ddit.vo.ChatVO;
+import kr.or.ddit.vo.chatSelectResultVO;
+
+@Service
+public class ChatServiceImpl implements IChatService {
+
+	@Inject
+	private ChatMapper mapper;
+	@Inject
+	private EmpMapper empMapper;
+	
+	@Override
+	public void insertChatting(String msg, String crNo, String empNo) {
+		ChatVO chat = new ChatVO();
+		chat.setCrNo(crNo);
+		chat.setChasenderEmpno(empNo);
+		int memNum = mapper.selectCRMemNum(chat);
+		chat.setChatUncheck(memNum);
+		chat.setChatMsg(msg);
+		System.out.println("chat Impl : " + chat);
+		// 채팅방 멤버 n조회
+		mapper.insert(chat);
+	}
+	@Override
+	public List<chatSelectResultVO> selectChatRoom(String chatuser) {
+		return mapper.selectChatRoom(chatuser);
+	}
+	@Override
+	public List<chatSelectResultVO> selectChatUser(String chatuser) {
+		return mapper.selectChatUser(chatuser);
+	}
+	@Override
+	public List<ChatRoomDTLVO> selectRoomDetail(ChatVO chat) {
+		return mapper.selectRoomDetail(chat);
+	}
+	// 채팅방 생성 및 내 정보 입력
+	@Override
+	public ChatRoomVO createChatMyRoom(List<String> empNolist) {
+		ChatRoomVO chatRoom = new ChatRoomVO();
+		ChatMemberVO chatMember = new ChatMemberVO();
+		System.out.println("empNo : " +empNolist);
+		// 내 아이디
+		CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String chatuser = user.getEmp().getEmpNo();
+		// 내 아이디도 제목에 추가
+		empNolist.add(chatuser);
+		String empName = String.join(",", empMapper.findName(empNolist));
+		chatRoom.setCrTitle(empName);
+		// 채팅방 생성
+		mapper.createChatRoom(chatRoom);
+		System.out.println("chatUser : " + chatuser);
+		chatMember.setEmpNo(chatuser);
+		String crNo = chatRoom.getCrNo();
+		chatMember.setCrNo(crNo);
+		System.out.println("CrNo : " + chatRoom.getCrNo());
+		// CC_FIRST 지정
+		int ccFirst = mapper.selectMemberChatNo(crNo);
+		chatMember.setCcFirst(ccFirst);
+		chatMember.setCrcmTitle(chatRoom.getCrTitle());
+		return mapper.createChatMyRoom(empNolist);
+	}
+	// 채팅방 멤버 입력
+	@Override
+	public void createChatMember(List<String> empNolist, String crNo) {
+	    Map<String, Object> memberList = new HashMap<>();
+	    memberList.put("list", empNolist);
+	    memberList.put("crNo", crNo);
+	    int ccFirst = mapper.selectMemberChatNo(crNo);
+	    memberList.put("ccFirst", ccFirst);
+	    String crcmTitle = mapper.selectRoomTitle(crNo);
+	    memberList.put("crcmTitle", crcmTitle);
+	    mapper.createChatMember(memberList);
+	}
+	// 채팅방 유무 확인
+	@Override
+	public boolean checkChatRoomExists(List<String> empNolist) {
+		int listSize = (int)empNolist.size();
+		
+		int result = mapper.checkChatRoomExists(empNolist, listSize);
+		// 결과가 0보다 크면 채팅방 존재
+		return result > 0;
+	}
+
+
+}

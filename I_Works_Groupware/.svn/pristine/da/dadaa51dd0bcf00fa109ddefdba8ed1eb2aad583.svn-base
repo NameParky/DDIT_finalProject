@@ -1,0 +1,14 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.SeatResVO;
+
+public interface IFreeseatService {
+
+	public List<SeatResVO> showReservedSeat();
+	public ServiceResult chkMyFreeseat(String name);
+	public ServiceResult makeRsvFreeseat(SeatResVO seatResVO);
+
+}

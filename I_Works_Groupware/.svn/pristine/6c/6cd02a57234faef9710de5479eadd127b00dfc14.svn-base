@@ -1,0 +1,269 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
+<div class="email-container">
+	<div class="row">
+		<div class="col-8"></div>
+		<div class="col-4 d-felx text-end">
+			<input id="fileInput" type="file" style="display:none"/>
+			<button class="btn btn-primary me-1 mb-1" type="button" id="resFolderBtn">&nbsp;&nbsp;폴더생성&nbsp;&nbsp;</button>
+			<button class="btn btn-primary me-1 mb-1" type="button" id="resFileBtn">파일업로드</button>
+		</div>
+	</div>
+	<div
+		class="row gx-lg-6 gx-3 py-4 z-index-2 position-sticky bg-soft email-header">
+		<div class="col-auto d-lg-none">
+			<a class="btn btn-primary px-3 px-sm-4"
+				href="../../apps/email/compose.html"> <span
+				class="d-none d-sm-inline-block">Compose</span><span
+				class="d-sm-none fas fa-plus"></span></a>
+		</div>
+		<div class="col-auto flex-1">
+			<div class="search-box w-100">
+				<form class="position-relative" data-bs-toggle="search"
+					data-bs-display="static">
+					<input class="form-control search-input search" type="search"
+						placeholder="Search ..." aria-label="Search" /> <span
+						class="fas fa-search search-box-icon"></span>
+
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="row g-lg-6 mb-8">
+		<div class="col-lg-auto">
+			<div class="phoenix-offcanvas-backdrop d-lg-none"
+				data-phoenix-backdrop="data-phoenix-backdrop" style="top: 0;"></div>
+		</div>
+		<div class="col-lg">
+			<div class="px-lg-1">
+				<div
+					class="d-flex align-items-center flex-wrap position-sticky pb-2 bg-soft z-index-2 email-toolbar inbox-toolbar">
+					<div class="d-flex align-items-center flex-1 me-2"></div>
+					<div class="d-flex">
+						<p class="text-600 fs--1 fw-semi-bold mb-0 me-3">
+							Showing : <span class="text-900">1-7 </span>of <span
+								class="text-900">205</span>
+						</p>
+						<button class="btn p-0 me-3" type="button">
+							<span class="text-500 fa-solid fa-angle-left fs--2"></span>
+						</button>
+						<button class="btn p-0" type="button">
+							<span class="text-primary fa-solid fa-angle-right fs--2"></span>
+						</button>
+					</div>
+				</div>
+				<div
+					class="border-top border-200 py-2 d-flex justify-content-between">
+					<div class="form-check mb-0 fs-0">
+						<input class="form-check-input" type="checkbox"
+							data-bulk-select-row="data-bulk-select-row" />
+					</div>
+					<div>
+						<button class="btn p-0 me-2 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="Archive">
+							<span class="uil uil-share-alt fs-0 fw-bold"></span>
+						</button>
+						<button class="btn p-0 me-2 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="Star">
+							<span class="uil uil-download-alt fs-0 fw-bold"></span>
+						</button>
+						<button class="btn p-0 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="Tags">
+							<span class="uil uil-trash fs-0 fw-bold"></span>
+						</button>
+					</div>
+				</div>
+
+				
+				<div class="border-top border-200 hover-actions-trigger py-3">
+					<!-- 폴더위치 -->
+					<c:forEach var="folder" items="${FolderList }">
+					<form action="/indfiles.do" method="POST" id="${folder.folderName }">
+					<input type="hidden" value="${folder.folderCd }" name="folderCd">
+					<input type="hidden" value="${folder.folderSe }" name="folderSe">
+					<input type="hidden" value="${folder.empNo }" name="empNo">
+					<input type="hidden" value="${folder.folderName }" name="folderName">
+					<input type="hidden" value="${folder.folderParent }" name="folderParent">
+					<input type="hidden" value="${folder.folderDelse }" name="folderDelse">			
+					<div class="row align-items-sm-center gx-2">
+						<div class="col-auto">
+							<div class="d-flex flex-column flex-sm-row">
+								<input class="form-check-input mb-2 m-sm-0 me-sm-2"
+									type="checkbox" id="checkbox-1"
+									data-bulk-select-row="data-bulk-select-row" />
+								<button class="btn p-0">
+									<span class="text-warning uil uil-star"></span>
+								</button>
+							</div>
+						</div>
+						<div class="col-auto">
+							<div class="avatar avatar-s  rounded-circle">
+								<span class="uil uil-folder"></span>
+							</div>
+						</div>
+						<div class="col-auto">
+							<a class="text-1100 fw-bold inbox-link fs--1 folderSelect" id="" style="cursor:pointer">${folder.folderName }</a>
+						</div>
+					</div>
+					<hr/>
+					</form>
+					</c:forEach>
+
+
+					<!--  파일위치  -->
+
+					<div class="row align-items-sm-center gx-2">
+						<div class="col-auto">
+							<div class="d-flex flex-column flex-sm-row">
+								<input class="form-check-input mb-2 m-sm-0 me-sm-2"
+									type="checkbox" id="checkbox-1"
+									data-bulk-select-row="data-bulk-select-row" />
+								<button class="btn p-0">
+									<span class="text-warning uil uil-star"></span>
+								</button>
+							</div>
+						</div>
+						<div class="col-auto">
+							<div class="avatar avatar-s  rounded-circle">
+								<span class="uil uil-file"></span>
+							</div>
+						</div>
+						<div class="col-auto">
+							<a class="text-1100 fw-bold inbox-link fs--1"
+								href="../../apps/email/email-detail.html">파일.exe</a>
+						</div>
+					</div>
+					<hr/>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 폴더이름을 저장할 모달. -->
+<form action="/InsertIndFileFolder.do" method="POST" id="folderNameForm">
+<div class="modal fade" id="folderModal" tabindex="-1" aria-labelledby="verticallyCenteredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="verticallyCenteredModalLabel">아이웍스</h5><button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-700 lh-lg mb-0 pb-2 px-1">원하시는 폴더명을 입력하세요</p>
+        <div>
+        	<input class="form-control" id="folderName" placeholder="폴더명 입력" name="folderName"/>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-primary" type="button" data-bs-dismiss="modal" id="modalOkayBtn">확인</button>
+      <button class="btn btn-danger" type="button" data-bs-dismiss="modal" id="modalCancleBtn">취소</button></div>
+    </div>
+  </div>
+</div>
+
+<c:if test="${not empty parentCd }">
+	<input type="hidden" value="${parentCd.folderCd }" name="folderParent">
+</c:if>
+</form>
+
+<form action="/insertIndFileFile.do" method="POST" id="fileNameForm" enctype="multipart/form-data">
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="verticallyCenteredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="verticallyCenteredModalLabel">아이웍스</h5><button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-700 lh-lg mb-0 pb-2 px-1">첨부할 파일을 선택해주세요</p>
+        <div class="mb-3">
+  			<input class="form-control form-control-sm" id="customFileSm" type="file" name="foFile" multiple="multiple"/>
+		</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-primary" type="button" data-bs-dismiss="modal" id="modalFileOkayBtn">확인</button>
+      <button class="btn btn-danger" type="button" data-bs-dismiss="modal" id="modalFileCancleBtn">취소</button></div>
+    </div>
+  </div>
+</div>
+<c:if test="${not empty parentCd }">
+	<input type="hidden" value="${parentCd.folderCd }" name="folderParent">
+</c:if>
+</form>
+<script>
+$(function(){
+	var resFolderBtn = $('#resFolderBtn');
+	var resFileBtn = $('#resFileBtn');
+	var folderModal = $('#folderModal');
+	var fileModal = $('#fileModal');
+	var folderName = $('#folderName');
+	var modalOkayBtn = $('#modalOkayBtn');
+	var modalCancleBtn = $('#modalCancleBtn');
+	var folderNameForm = $('#folderNameForm');
+	var folderSelect = $('.folderSelect');
+	var modalFileOkayBtn = $('#modalFileOkayBtn');
+	var fileNameForm = $('#fileNameForm');
+	
+	resFolderBtn.on('click', function(){
+		folderModal.modal('show');		
+	});
+	
+	modalOkayBtn.on('click', function(){		
+		if(folderName.val()==null || folderName.val()=="") {
+			var alertDiv = $('#alertDiv');
+			var str = "";
+			str += '<div class="alert alert-outline-danger d-flex align-items-center" role="alert">';
+			str += '<span class="fas fa-times-circle text-danger fs-3 me-3"></span>';
+			str += '<p class="mb-0 flex-1">A simple danger alert—check it out!</p>';
+			str += '<button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>'
+			str += '</div>'
+
+			alertDiv.html(str);
+			
+			return false;
+		} else {
+			folderNameForm.submit();
+		}
+		
+	});
+	
+	folderSelect.on('click', function(){
+		var submitForm = this.textContent;
+		console.log(this.textContent);
+		
+		var form = $('#'+submitForm);
+		form.submit();
+	});
+	
+	
+	resFileBtn.on('click', function(){
+		fileModal.modal('show');
+	});
+	
+	modalFileOkayBtn.on('click', function(){
+		fileNameForm.submit();
+	});
+	
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

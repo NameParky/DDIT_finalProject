@@ -1,0 +1,31 @@
+package kr.or.ddit.controller.notify;
+
+import java.security.Principal;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.service.INotifyService;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class NotifyController {
+	
+	@Inject
+	INotifyService notiService;
+	
+	
+	//알림 갯수 가져오기 
+	@ResponseBody
+	@PostMapping("/selecCntNotify.do")
+	public int selecCntNotify(Principal principal) {
+		String empNo = principal.getName();
+		int notiCnt =  notiService.selecCntNotify(empNo);
+				
+		return notiCnt;
+	}
+}

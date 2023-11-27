@@ -1,0 +1,142 @@
+package kr.or.ddit.controller.mypage;
+
+import java.security.Principal;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.mapper.DocMapper;
+import kr.or.ddit.mapper.EmpMapper;
+import kr.or.ddit.service.IDocService;
+import kr.or.ddit.vo.DocHistoryVO;
+import kr.or.ddit.vo.EmpVO;
+import kr.or.ddit.vo.SalaryVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class DocController {
+
+	@Inject
+	EmpMapper empMapper;
+	@Inject
+	DocMapper docMapper;
+	@Inject
+	IDocService docService;
+	
+	// 증명서 출력
+	@RequestMapping(value = "/dochistory.do", method = RequestMethod.GET)
+	public String docHistory(Principal principal, Model model) {
+		String empNo = principal.getName();
+		EmpVO empVO = empMapper.readByUserId(empNo);
+		List<DocHistoryVO> docList = docMapper.selectDocHistory(empNo);
+		model.addAttribute("empVO", empVO);
+		model.addAttribute("docList", docList);
+		return "main/mypage/dochistory";
+	}
+	
+	// 증명서 신청
+	@PostMapping("/appDoc.do")
+	public String appDoc (DocHistoryVO docHistoryVO, Principal principal, RedirectAttributes ra) {
+		log.info("appDoc 실행...! docHistoryVO : "+ docHistoryVO);
+		docHistoryVO.setEmpNo(principal.getName());
+		
+		ServiceResult result =  docService.appDoc(docHistoryVO);
+		
+		
+		
+		if(result.equals(ServiceResult.OK)) {
+			ra.addFlashAttribute("message", "증명서 신청이 완료되었습니다!");
+		}else {
+			ra.addFlashAttribute("message", "증명서 신청에 실패하였습니다!");
+		}
+		
+		return "redirect:/dochistory.do";
+	}
+	
+	// 증명서 상태값 변경
+	@ResponseBody
+	@RequestMapping(value = "/updateDocSe.do", method = RequestMethod.POST, produces="text/plain; charset=utf-8")
+	public String updateDocSe (@RequestBody Map<String, String> map) {
+		
+		String docCd = map.get("docCd");
+		log.info("updateDocSe 실행 확인 : "+ docCd);
+
+		String msg = docService.updateDocSe(docCd);
+		
+		return msg;
+	}
+	
+	//재직증명서 팝업창
+	@GetMapping("/historydetail.do")
+	public String docHistoryDetail(Principal principal, Model model, String docCd) {
+		log.info("재직 증명서 컨트롤러 타는지 확인!!!! docCd : "+docCd);
+		// 값 세팅을 위해 emp 정보와 증명서 신청 정보를 가져온다 
+		DocHistoryVO docHistoryVO = docService.selectDoc(docCd);
+		EmpVO empVO = empMapper.readByUserId(principal.getName());
+		
+		model.addAttribute("docHistoryVO", docHistoryVO);
+		model.addAttribute("empVO", empVO);
+		
+		return "mypage/historydetail";
+	}
+
+	// 경력증명서 팝업창
+	@GetMapping("/proofEmp.do")
+	public String proofEmp(Principal principal, Model model, String docCd) {
+		log.info("경력 증명서 컨트롤러 타는지 확인!!!!");
+		DocHistoryVO docHistoryVO = docService.selectDoc(docCd);
+		EmpVO empVO = empMapper.readByUserId(principal.getName());
+		
+		model.addAttribute("docHistoryVO", docHistoryVO);
+		model.addAttribute("empVO", empVO);
+		return "mypage/proofEmp";
+	}
+	// 급여명세서 팝업창
+	@GetMapping("/paystub.do")
+	public String payStub(Principal principal, Model model, String docCd, RedirectAttributes ra) {
+		log.info("payStub 컨트롤러 타는지 확인!!!!");
+		String goPage = "";
+		EmpVO empVO = empMapper.readByUserId(principal.getName());
+		// 급여내역도 가져와야함
+		SalaryVO salaryVO = docService.selectPaystub(principal.getName());
+		
+		model.addAttribute("salaryVO", salaryVO);
+		model.addAttribute("empVO", empVO);
+		
+		return "mypage/paystub";
+	}
+	
+	// 급여명세서 출력 전 급여지급내역 확인
+	@ResponseBody
+	@PostMapping(value = "/checkPaystub.do", produces ="text/plain; charset=utf-8")
+	public String checkPaystub(Principal principal) {
+		String msg = "null";
+		SalaryVO salaryVO = docService.selectPaystub(principal.getName());
+		if(salaryVO != null) {
+			msg="ok";
+		}
+		return msg;
+	}
+	
+	
+	@RequestMapping(value = "/notifySetting.do", method=RequestMethod.GET)
+	public String notifySetting() {
+		return "main/mypage/notify";
+	}
+	
+
+}

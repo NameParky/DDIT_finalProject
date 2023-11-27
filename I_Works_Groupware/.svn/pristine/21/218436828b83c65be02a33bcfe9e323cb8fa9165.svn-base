@@ -1,0 +1,74 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>결재선 관리</title>
+</head>
+<body>
+<h2>결재선 관리</h2>
+<br/>
+	<table class="table table-hover" style="margin:0 auto; text-align: center;">
+	  <thead>
+	    <tr>
+	      <th scope="col">	        		
+	      	<input class="form-check-input" id="totalChk" type="checkbox" />
+		  </th>
+	      <th scope="col">즐겨찾는 결재선명</th>
+	      <th scope="col">등록된 사원</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr>
+	      <th scope="row">
+			<input class="form-check-input" type="checkbox" name="chk" />
+		  </th>
+	      <td>즐겨찾기1</td>
+	      <td>조유경, 김수진, 박태범</td>
+	    </tr>
+	    <tr>
+	      <th scope="row">
+	      	<input class="form-check-input" type="checkbox" name="chk" />
+	      </th>
+	      <td></td>
+	      <td></td>
+	    </tr>
+	    <tr>
+	      <th scope="row">
+	      	<input class="form-check-input" type="checkbox" name="chk" />
+	      </th>
+	      <td></td>
+	      <td></td>
+	    </tr>
+	  </tbody>
+	</table> 
+	<br/>
+	<button class="btn btn-outline-info me-1 mb-1" type="button">등록</button>
+	<button class="btn btn-outline-info me-1 mb-1" type="button">수정</button>
+	<button class="btn btn-outline-info me-1 mb-1" type="button">삭제</button>
+		
+</body>
+<script type="text/javascript">
+$(document).ready(function() {
+	/* 체크박스 */
+	$("#totalChk").click(function(){
+		if($("#totalChk").is(":checked")) $("input[name=chk]").prop("checked", true);
+		else $("input[name=chk]").prop("checked", false);
+		
+	});
+
+	$("input[name=chk]").click(function(){
+		var total = $("input[name=chk]").length;
+		var checked = $("input[name=chk]:checked").length;
+		
+		if(total != checked) $("#totalChk").prop("checked", false);
+		else $("#totalChk").prop("checked", true); 
+		
+	});
+
+});
+
+
+</script>
+</html>

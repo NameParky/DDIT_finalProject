@@ -1,0 +1,20 @@
+package kr.or.ddit.service;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.vo.ClubPostVO;
+import kr.or.ddit.vo.ClubVO;
+
+public interface IClubBoardService {
+
+	public void createClub(ClubVO clubVO, MultipartFile file) throws IllegalStateException, IOException;
+	public List<ClubVO> showMyClub(String name);
+	public List<ClubVO> showAllClub();
+	public ClubVO showOneClub(String clubCd);
+	public void insertClubPost(ClubPostVO clubPostVO, MultipartFile[] cpFiles) throws IllegalStateException, IOException;
+	public ClubPostVO showClubBoardDetail(String cpNo);
+
+}

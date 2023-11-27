@@ -1,0 +1,524 @@
+package kr.or.ddit.service.impl;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.io.CopyUtils;
+import org.apache.commons.io.FileUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.mapper.BoardFileMapper;
+import kr.or.ddit.mapper.EmpMapper;
+import kr.or.ddit.mapper.MailMapper;
+import kr.or.ddit.service.IMailService;
+import kr.or.ddit.vo.EmpVO;
+import kr.or.ddit.vo.FileVO;
+import kr.or.ddit.vo.MailFormVO;
+import kr.or.ddit.vo.MailRecVO;
+import kr.or.ddit.vo.RMailVO;
+import kr.or.ddit.vo.SMailVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class MailServiceImpl implements IMailService{
+
+	@Inject
+	private MailMapper mapper;
+	
+	@Inject
+	private EmpMapper empMapper;
+	
+	@Inject 
+	private BoardFileMapper fileMapper;
+	
+	// 시큐리티에서 유저정보 꺼내오기
+	private String UserNoFind() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		return empNo;
+	}
+	
+	
+	// 받은 메일함 전체목록 가져오기
+	@Override
+	public List<RMailVO> selectAllRmail() {
+		List<RMailVO> receiveMail = mapper.selectAllRmail(UserNoFind());
+		for(int i = 0; i < receiveMail.size(); i++) {
+			EmpVO empVO = new EmpVO();
+			empVO = empMapper.readByUserId(receiveMail.get(i).getMailrEmpno());
+			receiveMail.get(i).setMailrEmpname(empVO.getEmpName());
+			empVO = empMapper.readByUserId(receiveMail.get(i).getMailsEmpno());
+			receiveMail.get(i).setMailsEmpname(empVO.getEmpName());
+		}
+		return receiveMail;
+	}
+
+	// 받은 메일한 상세보기
+	@Override
+	public RMailVO selectRmailOne(RMailVO rmailVO) {
+		EmpVO empVO = new EmpVO();
+		rmailVO = mapper.selectRmailOne(rmailVO);
+		empVO = empMapper.readByUserId(rmailVO.getMailrEmpno());
+		rmailVO.setMailrEmpname(empVO.getEmpName());
+		empVO = empMapper.readByUserId(rmailVO.getMailsEmpno());
+		rmailVO.setMailsEmpname(empVO.getEmpName());
+		return rmailVO;
+	}
+
+	
+	// 파일을 받아서 파일명을 보내는 ajax
+	@Override
+	public Map<String, Object> SendMailAjax(List<MultipartFile> selectFileList, HttpServletRequest req,
+			HttpServletResponse resp) throws IOException {
+		List<FileVO> fileList = new ArrayList<FileVO>();
+		for(int i = 0; i < selectFileList.size(); i++) {
+			FileVO fileVO = new FileVO();
+			// 랜덤네임 생성해주는 ㅠㅠ아이디.
+			UUID randomName = UUID.randomUUID();
+			// 파일 카피에 사용할 file(경로, 파일이름), byte[](데이터 세팅).
+			String preFile = selectFileList.get(i).getOriginalFilename();
+			System.out.println(preFile);
+			// 저장할 랜덤이름 세팅
+			fileVO.setFileSavename(randomName+preFile);
+			fileVO.setFileOrgname(preFile);
+			fileList.add(fileVO);
+		}
+		for(int i = 0; i < fileList.size(); i++) {
+			System.out.println(fileList.get(i));
+		}
+		Map<String, Object> ajaxMap = new HashMap<String, Object>();
+		ajaxMap.put("preFile", fileList);
+		return ajaxMap;
+	}
+
+
+	@Override
+	public void sendMailForm(MailFormVO mailFormVO,
+								HttpServletRequest req, 
+								HttpServletResponse resp) throws IOException {
+		
+		List<String> empList = mailFormVO.getMailEmpno();
+		log.info("메일 수신자 목록 {} : ", empList);
+		List<String> refList = mailFormVO.getMailRef();
+		log.info("메일 참조자 목록 {} : ", refList);
+		String title = mailFormVO.getMailTitle();
+		String refTitle = "(ref) "+title;
+		String content = mailFormVO.getMailContent();
+		List<MultipartFile> fileList = mailFormVO.getFileList();
+		String shareId = "";
+		String shareFileId = "";
+		String shareSmailEmpno = "";
+		
+		
+		// 메일 발신자로직
+		if(1==1) {
+			SMailVO mail = new SMailVO();
+			mail.setMailsEmpno(UserNoFind());
+			mail.setMailTitle(title);
+			mail.setMailContent(content);
+			
+			// 기본 인서트
+			mapper.insertSmail(mail);
+			// 인서트된것 중에 가장 최신을 불러옴
+			mail = mapper.selectFastestOne(mail);
+			// 위에서 가져온걸 바탕으로 하나의 인서트된 값을 불러옴.
+			mail = mapper.selectSmailOne(mail);
+			// "메일"+메일번호로 첨부파일번호 생성.
+			String fileName = "mail"+mail.getMailNo();
+			mail.setMailFileno(fileName);
+			// 첨부파일 번호 세팅
+			mapper.updateSmailFile(mail);
+			
+			// 공용으로 쓸 만들어진 메일넘버.
+			shareId = mail.getMailNo();
+			// 공용으로 쓸 만들어진 파일넘버.
+			shareFileId = fileName;
+			// 공용으로 쓸 받은사람.
+			shareSmailEmpno = mail.getMailsEmpno();
+		}
+		
+		
+		// 메일 수신자로직
+		if(empList != null) {
+			// 널 아닐때 리스트를 돌림.
+			for(int i = 0; i < empList.size(); i++) {
+				System.out.println("rmail수신자 : "+empList.get(i));
+				// 받은메일보 초기화.
+				RMailVO mail = new RMailVO();
+				// 메일수신참조보 초기화.
+				MailRecVO recVO = new MailRecVO();
+				// 메일 번호
+				mail.setMailNo(shareId);
+				// 메일 제목
+				mail.setMailTitle(title);
+				// 메일 내용
+				mail.setMailContent(content);
+				// 메일 보낸사람
+				mail.setMailsEmpno(shareSmailEmpno);
+				// 메일 받는사람
+				mail.setMailrEmpno(empList.get(i));
+				// 메일 체크여부
+				mail.setMailChkse("1");
+				// 메일 삭제여부
+				mail.setMailDelse("1");
+				// 메일 중요메일여부
+				mail.setMailImpse("1");
+				// 메일 첨부파일 번호
+				mail.setMailFileno(shareFileId);
+				// 받은메일 인서트.
+				mapper.insertRmail(mail);
+				
+				// 메일 수신테이블에 추가.
+				recVO.setMailNo(shareId);
+				recVO.setMailrecEmpno(empList.get(i));
+				// 받은이 인서트.
+				mapper.insertRecEmp(recVO);
+			}
+		}
+		
+		
+		// 메일 참조자 로직
+		if(empList != null) {
+			for(int i = 0; i < refList.size(); i++) {
+				System.out.println("rmail참조자 : "+empList.get(i));
+				// 받은메일보 초기화.
+				RMailVO mail = new RMailVO();
+				// 메일수신참조보 초기화.
+				MailRecVO recVO = new MailRecVO();
+				// 메일 번호
+				mail.setMailNo(shareId);
+				// 메일 제목
+				mail.setMailTitle(refTitle);
+				// 메일 내용
+				mail.setMailContent(content);
+				// 메일 보낸사람
+				mail.setMailsEmpno(shareSmailEmpno);
+				// 메일 받는사람
+				mail.setMailrEmpno(refList.get(i));
+				// 메일 체크여부
+				mail.setMailChkse("1");
+				// 메일 삭제여부
+				mail.setMailDelse("1");
+				// 메일 중요메일여부
+				mail.setMailImpse("1");
+				// 메일 첨부파일 번호
+				mail.setMailFileno(shareFileId);
+				// 받은메일 인서트.
+				mapper.insertRmail(mail);
+				
+				//메일 참조테이블에 추가.
+				recVO.setMailNo(shareId);
+				recVO.setMailrefEmpno(refList.get(i));
+				// 참조자 인서트.
+				mapper.insertRefEmp(recVO);
+			}
+		}
+		
+		
+		// 파일 로직
+		if(fileList!=null) {
+			for(int i = 0; i < fileList.size(); i++) {
+				FileVO fileVO = new FileVO();
+				// 오리지날 네임 세팅
+				String orgName = fileList.get(i).getOriginalFilename();
+				// 세이브 네임에 사용할 ㅠㅠ아이디 세팅
+				UUID uuid = UUID.randomUUID();
+				// 세이브 네임 세팅
+				String saveName = uuid+orgName;
+				// 기본 경로 비포
+				String fileBeforePath = req.getServletContext().getRealPath("");
+				// 이후 설정 경로 애프터
+				String fileAfterPath = "resources/file/mail/";
+				// 합쳐놓는게 짧으니 일단 하나 만들자.
+				String allPath = fileBeforePath+fileAfterPath;
+				// 사이즈는 롱.
+				long fileSize = fileList.get(i).getSize();
+				// 컨텐트타입 = 마임타입 = 미디어타입.
+				String fileMime = fileList.get(i).getContentType();
+				// 확장자 나누기
+				String[] nameArray = orgName.split("\\.");
+				String fileType = nameArray[nameArray.length-1];
+				// 데이터업로드할 데이터
+				byte[] fileData = fileList.get(i).getBytes();
+				
+				
+				
+				// 기본경로 + 설정경로로 파일생성
+				File file = new File(fileBeforePath+"/"+fileAfterPath);
+				
+				//없으면
+				if(!file.exists()) {
+					//만들어 '줘'
+					file.mkdirs();
+				}
+				
+				// 어디서 무슨이름으로 파일 만들지 정하기.
+				// 이름이 겹치면 터지니까 ㅠㅠ아이디붙은 세이브네임으로 만들자.
+				File targetFile = new File(allPath+saveName);
+				
+				// 복사
+				FileCopyUtils.copy(fileData, targetFile); // 파일 복사 진행
+				
+				// 보세팅.
+				fileVO.setFileNo(shareFileId);
+				fileVO.setFileOrgname(orgName);
+				fileVO.setFileSavename(saveName);
+				fileVO.setFileSavepath(fileAfterPath);
+				fileVO.setFileSize(fileSize);
+				fileVO.setFileMime(fileMime);
+				fileVO.setFileType(fileType);
+				
+				fileMapper.insertFile(fileVO);
+			}
+			HttpSession session = req.getSession();
+			String sendMail = "메일 발송이 완료되었습니다";
+			session.setAttribute("sendMail", sendMail);
+		}
+	}
+
+
+	@Override
+	public void sendMailToMeForm(MailFormVO mailFormVO, HttpServletRequest req, HttpServletResponse resp)
+			throws IOException {
+
+		String title = mailFormVO.getMailTitle();
+		String content = mailFormVO.getMailContent();
+		List<MultipartFile> fileList = mailFormVO.getFileList();
+		log.info("타이틀 {} : ",title);
+		log.info("내용 : {}", content);
+		String shareId = "";
+		String shareFileId = "";
+		String shareSmailEmpno = "";
+
+		// 메일 발신자로직
+		if (1 == 1) {
+			SMailVO mail = new SMailVO();
+			mail.setMailsEmpno(UserNoFind());
+			mail.setMailTitle(title);
+			mail.setMailContent(content);
+
+			// 기본 인서트
+			mapper.insertSmail(mail);
+			// 인서트된것 중에 가장 최신을 불러옴
+			mail = mapper.selectFastestOne(mail);
+			// 위에서 가져온걸 바탕으로 하나의 인서트된 값을 불러옴.
+			mail = mapper.selectSmailOne(mail);
+			// "메일"+메일번호로 첨부파일번호 생성.
+			String fileName = "mail" + mail.getMailNo();
+			mail.setMailFileno(fileName);
+			// 첨부파일 번호 세팅
+			mapper.updateSmailFile(mail);
+
+			// 공용으로 쓸 만들어진 메일넘버.
+			shareId = mail.getMailNo();
+			// 공용으로 쓸 만들어진 파일넘버.
+			shareFileId = fileName;
+			// 공용으로 쓸 받은사람.
+			shareSmailEmpno = mail.getMailsEmpno();
+			
+			// 받은메일보 초기화.
+			RMailVO rmail = new RMailVO();
+			// 메일수신참조보 초기화.
+			MailRecVO recVO = new MailRecVO();
+			// 메일 번호
+			rmail.setMailNo(shareId);
+			// 메일 제목
+			rmail.setMailTitle(title);
+			// 메일 내용
+			rmail.setMailContent(content);
+			// 메일 보낸사람
+			rmail.setMailsEmpno(shareSmailEmpno);
+			// 메일 받는사람
+			rmail.setMailrEmpno(UserNoFind());
+			// 메일 체크여부
+			rmail.setMailChkse("1");
+			// 메일 삭제여부
+			rmail.setMailDelse("1");
+			// 메일 중요메일여부
+			rmail.setMailImpse("1");
+			// 메일 첨부파일 번호
+			rmail.setMailFileno(shareFileId);
+			// 받은메일 인서트.
+			mapper.insertRmail(rmail);
+
+			// 메일 수신테이블에 추가.
+			recVO.setMailNo(shareId);
+			recVO.setMailrecEmpno(UserNoFind());
+			// 받은이 인서트.
+			mapper.insertRecEmp(recVO);
+		}
+
+		// 파일 로직
+		if (fileList != null) {
+			for (int i = 0; i < fileList.size(); i++) {
+				FileVO fileVO = new FileVO();
+				// 오리지날 네임 세팅
+				String orgName = fileList.get(i).getOriginalFilename();
+				// 세이브 네임에 사용할 ㅠㅠ아이디 세팅
+				UUID uuid = UUID.randomUUID();
+				// 세이브 네임 세팅
+				String saveName = uuid + orgName;
+				// 기본 경로 비포
+				String fileBeforePath = req.getServletContext().getRealPath("");
+				// 이후 설정 경로 애프터
+				String fileAfterPath = "resources/file/mail/";
+				// 합쳐놓는게 짧으니 일단 하나 만들자.
+				String allPath = fileBeforePath + fileAfterPath;
+				// 사이즈는 롱.
+				long fileSize = fileList.get(i).getSize();
+				// 컨텐트타입 = 마임타입 = 미디어타입.
+				String fileMime = fileList.get(i).getContentType();
+				// 확장자 나누기
+				String[] nameArray = orgName.split("\\.");
+				String fileType = nameArray[nameArray.length - 1];
+				// 데이터업로드할 데이터
+				byte[] fileData = fileList.get(i).getBytes();
+
+				// 기본경로 + 설정경로로 파일생성
+				File file = new File(fileBeforePath + "/" + fileAfterPath);
+
+				// 없으면
+				if (!file.exists()) {
+					// 만들어 '줘'
+					file.mkdirs();
+				}
+
+				// 어디서 무슨이름으로 파일 만들지 정하기.
+				// 이름이 겹치면 터지니까 ㅠㅠ아이디붙은 세이브네임으로 만들자.
+				File targetFile = new File(allPath + saveName);
+
+				// 복사
+				FileCopyUtils.copy(fileData, targetFile); // 파일 복사 진행
+
+				// 보세팅.
+				fileVO.setFileNo(shareFileId);
+				fileVO.setFileOrgname(orgName);
+				fileVO.setFileSavename(saveName);
+				fileVO.setFileSavepath(fileAfterPath);
+				fileVO.setFileSize(fileSize);
+				fileVO.setFileMime(fileMime);
+				fileVO.setFileType(fileType);
+
+				fileMapper.insertFile(fileVO);
+			}
+			HttpSession session = req.getSession();
+			String sendMail = "메일 발송이 완료되었습니다";
+			session.setAttribute("sendMail", sendMail);
+		}
+	}
+
+
+	@Override
+	public List<SMailVO> selectAllSmail() {
+		List<SMailVO> sendedMail = mapper.selectAllSmail(UserNoFind());
+		int index = 0;
+		for(int i = 0; i < sendedMail.size(); i++) {
+			EmpVO empVO = new EmpVO();
+			MailRecVO recVO = new MailRecVO();
+			empVO = empMapper.readByUserId(sendedMail.get(i).getMailsEmpno());
+			sendedMail.get(i).setMailsEmpname(empVO.getEmpName());
+			
+			recVO.setMailNo(sendedMail.get(i).getMailNo());
+			List<MailRecVO> recList = mapper.selectAllRecEmp(recVO);
+			List<MailRecVO> refList = mapper.selectAllRefEmp(recVO);
+			for(int j = 0; j < recList.size(); j++) {
+				String empName = recList.get(j).getMailrecEmpno();
+				EmpVO emp = new EmpVO();
+				emp = empMapper.readByUserId(empName);
+				recList.get(j).setMailrecEmpno(emp.getEmpName());
+			}
+			for(int j = 0; j < refList.size(); j++) {
+				String empName = refList.get(j).getMailrefEmpno();
+				EmpVO emp = new EmpVO();
+				emp = empMapper.readByUserId(empName);
+				refList.get(j).setMailrefEmpno(emp.getEmpName());
+			}
+			sendedMail.get(i).setRecCnt(recList.size());
+			sendedMail.get(i).setMailRec(recList);
+			sendedMail.get(i).setMailRef(refList);
+			
+		}
+		return sendedMail;
+	}
+
+
+	@Override
+	public List<RMailVO> selectAllMyselfMail() {
+		List<RMailVO> mailList = mapper.selectAllMyselfMail(UserNoFind());
+		for(int i = 0; i < mailList.size(); i++) {
+			EmpVO empVO = new EmpVO();
+			empVO = empMapper.readByUserId(UserNoFind());
+			String empName = empVO.getEmpName();
+			mailList.get(i).setMailsEmpname(empName);
+			mailList.get(i).setMailrEmpname(empName);
+		}
+		return mailList;
+	}
+
+
+	@Override
+	public Map<String, Object> mailLikeAjax(RMailVO rmailVO) {
+		rmailVO.setMailrEmpno(UserNoFind());
+		rmailVO = selectRmailOne(rmailVO);
+		if(rmailVO.getMailImpse().equals("1")) {
+			rmailVO.setMailImpse("2");
+		} else if (rmailVO.getMailImpse().equals("2")) {
+			rmailVO.setMailImpse("1");
+		}
+		mapper.mailLikeAjax(rmailVO);
+		rmailVO = selectRmailOne(rmailVO);
+		Map<String, Object> ajaxMap = new HashMap<String, Object>();
+		ajaxMap.put("mailLike", rmailVO);
+		return ajaxMap;
+	}
+
+
+	@Override
+	public List<RMailVO> selectAllImpRmail() {
+		String mailrEmpno = UserNoFind();
+		List<RMailVO> mailList = mapper.selectAllImpRmail(mailrEmpno);
+		for(int i = 0; i < mailList.size(); i++) {
+			EmpVO empVO = new EmpVO();
+			empVO = empMapper.readByUserId(mailList.get(i).getMailsEmpno());
+			mailList.get(i).setMailsEmpname(empVO.getEmpName());
+		}
+		return mailList;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

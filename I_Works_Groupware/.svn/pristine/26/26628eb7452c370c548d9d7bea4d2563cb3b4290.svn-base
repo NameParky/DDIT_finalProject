@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.BoardFileMapper">
+
+	<insert id="insertFile" parameterType="fileVO">
+		insert into (
+			FILE_NO, FILE_SEC, FILE_ORGNAME, FILE_SAVENAME, FILE_SAVEPATH, FILE_SIZE, FILE_MIME, FILE_TYPE
+		) VALUES (
+			#{fileNo},#{fileSec},#{fileOrgName},#{fileSaveName},#{fileSavePath},#{fileSize},#{fileMime},#{fileType}
+		)
+	</insert>
+
+</mapper>

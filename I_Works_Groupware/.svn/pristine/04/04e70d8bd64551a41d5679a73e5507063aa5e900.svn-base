@@ -1,0 +1,74 @@
+package kr.or.ddit.service.impl;
+
+import java.io.UnsupportedEncodingException;
+
+import javax.inject.Inject;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+@Service
+public class SendEmailService {
+		
+	@Inject
+	private JavaMailSender emailSender;
+	
+	// 메일 세팅
+		public MimeMessage setmeMessage(String empEmail, String empPw)
+				throws MessagingException, UnsupportedEncodingException {
+			log.info("setmeMessage() 실행...!");
+			// MimeMessage를 활용한 메세지 작성
+			MimeMessage message = emailSender.createMimeMessage();
+			// MimeMessageHelper를 이용한 메일 설정
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+			// 받는 사람 이메일
+			helper.setTo(empEmail);
+			// set 메일 제목
+			helper.setSubject("I-WORKS 비밀번호 찾기 결과입니다.");
+			// 메일 내용 작성 메소드
+			String emailContent = createEmailContent(empPw);
+			// set 메일 내용
+			helper.setText(emailContent, true);
+
+			helper.setFrom(new InternetAddress("dhkek567@gmail.com", "I-WORKS"));
+			log.info("메일 작성 메세지 확인  >>> " + message);
+			return message;
+		}
+
+		// 메일 내용 작성
+		public String createEmailContent(String empPw) {
+			log.info("createEmailContent() 실행...!");
+			StringBuilder mailContent = new StringBuilder();
+			String content = "";
+			content += "<html>";
+			content += "<head>";
+			content += "<title>I-WORKS 이메일</title>";
+			content += "</head>";
+			content += "<body>";
+			content += "<div style='margin:100px;'>";
+			content += "<h1>안녕하세요, I-WORKS 비밀번호 찾기 결과입니다. </h1>";
+			content += "<br/>";
+			content += "<div align='center' style='border:1px solid black; font-family:verdana';>";
+			content += "<h3 style='color:blue'>임시 비밀번호는</h3>";
+			content += "<div style='font-size:130%'>";
+			content += "<strong>" + empPw + "</strong>입니다. </br>";
+			content += "</div>";
+			content += "</div>";
+			content += "</div>";
+			content += "</body>";
+			content += "</html>";
+
+			// 최종적으로 보내줄 내용
+			mailContent.append(content);
+
+			return mailContent.toString();
+		}
+	
+}

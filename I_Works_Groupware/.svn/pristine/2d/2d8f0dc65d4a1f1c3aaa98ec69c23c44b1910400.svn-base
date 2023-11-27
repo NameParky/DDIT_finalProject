@@ -1,0 +1,46 @@
+package kr.or.ddit.controller.board;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class ClubBoardMain {
+	
+
+	@RequestMapping(value="/clubmain.do", method=RequestMethod.GET)
+	public String ClubBoard(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/clubMain";
+	}
+	
+	@RequestMapping(value="/clubmypage.do", method=RequestMethod.GET)
+	public String ClubMypage(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/clubMypage";
+	}
+	
+	@RequestMapping(value="/clubdetail.do", method=RequestMethod.GET)
+	public String ClubDetail(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/clubDetail";
+	}
+	
+	@RequestMapping(value="/createclub.do", method=RequestMethod.GET)
+	public String CreateClub(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/createClub";
+	}
+	
+	@RequestMapping(value="/cluball.do", method=RequestMethod.GET)
+	public String clubAll(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBard", boardBar);
+		return "main/board/cluball";
+	}
+}

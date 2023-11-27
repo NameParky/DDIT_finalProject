@@ -1,0 +1,103 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+
+
+	<div class="pb-5">
+		<div class="row g-4">
+			<div class="col-12 col-xxl-6">
+				<div></div>
+			</div>
+
+		</div>
+	</div>
+	<div class="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-white pt-7 border-y border-300">
+		
+		<div class="row">
+			<div class="col-1"></div>
+			<div class="col-6">
+				<h3 class="pb-5">동호회 개설</h3>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="col-1"></div>
+			<div class="col-10">
+				<div class="row pb-7">
+					<div class="col-1"></div>
+					<div class="col-3">
+						<h4 class="fw-normal px-7 pt-2">동호회명</h4>
+					</div>
+					<div class="col-7">
+						<input class="form-control form-control" id="sizingInput" type="text" placeholder="동호회명을 입력하세요" />
+					</div>
+					<div class="col-1"></div>
+				</div>
+				
+				
+				<div class="row pb-7">
+					<div class="col-1"></div>
+					<div class="col-3">
+						<h4 class="fw-normal px-7 pt-2">동호회 회장</h4>
+					</div>
+					<div class="col-7">
+						<input class="form-control form-control" id="sizingInput" type="text" placeholder="동호회 회장의 이름을 입력하세요" />
+					</div>
+					<div class="col-1"></div>
+				</div>
+				
+				
+				<div class="row pb-7">
+					<div class="col-1"></div>
+					<div class="col-3">
+						<h4 class="fw-normal px-7 pt-2">동호회 목적</h4>
+					</div>
+					<div class="col-7">
+						<input class="form-control form-control" id="sizingInput" type="text" placeholder="동호회의 목적을 입력하세요" />
+					</div>
+					<div class="col-1"></div>
+				</div>
+				
+				
+				<div class="row pb-7">
+					<div class="col-1"></div>
+					<div class="col-3">
+						<h4 class="fw-normal px-7 pt-2">동호회 소개글</h4>
+					</div>
+					<div class="col-7">
+						<textarea class="form-control" id="exampleTextarea" rows="9"> </textarea>
+					</div>
+					<div class="col-1"></div>
+				</div>
+				
+				<div class="row pb-7">
+					<div class="col-9"></div>
+					<div class="col-1 text-end" style="padding:0">
+						<button class="btn btn-primary me-1 mb-1" type="button">취소</button>
+					</div>
+					<div class="col-1">
+						<button class="btn btn-primary me-1 mb-1" type="button">개설</button>
+					</div>
+				</div>
+				
+			</div>
+			<div class="col-1"></div>
+		</div>
+		
+	</div>
+			
+			
+			
+			
+			
+
+
+
+<script type="text/javascript">
+$(function(){
+	var resBtn = $('#resBtn');
+	
+	resBtn.on('click', function(){
+		location.href="/freeWrite.do"
+	});
+});
+</script>

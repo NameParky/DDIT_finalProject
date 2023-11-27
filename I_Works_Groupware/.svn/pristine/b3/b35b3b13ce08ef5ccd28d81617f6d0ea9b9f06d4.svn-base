@@ -1,0 +1,154 @@
+package kr.or.ddit.handler;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import kr.or.ddit.mapper.AdminEmpMapper;
+import kr.or.ddit.mapper.EmpMapper;
+import kr.or.ddit.mapper.NotifyMapper;
+import kr.or.ddit.vo.EmpVO;
+import kr.or.ddit.vo.NotifyVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class NotifyHandler extends TextWebSocketHandler {
+
+	@Inject
+	NotifyMapper notiMapper;
+	@Inject
+	EmpMapper empMapper;
+	@Inject
+	AdminEmpMapper adminEmpMapper;
+
+	// 세션에 접속한 인원들의 아이디를 키값으로 세션 정보 담기위한 맵
+	Map<String, WebSocketSession> userSessionMap = new HashMap<String, WebSocketSession>();
+
+	@Override
+	public void afterConnectionEstablished(WebSocketSession session) throws Exception { // 소켓 연결
+		log.info("afterConnectionEstablished 실행...! 웹소켓 연결 성공 session 확인" + session.getId());
+		// 세션 접속 인원 리스트에 담기
+		String senderId = session.getPrincipal().getName();
+		log.info("senderId : " + senderId);
+		// 로그인한 사람의 정보 맵에 아이디를 키로 세션 정보 담기
+		userSessionMap.put(senderId, session);
+//		log.info("현재 접속자 수 {}", userSessionMap.size());
+		log.info("userSessionMap : " + userSessionMap.get(senderId));
+		log.info("userSessionMap " + userSessionMap.get(senderId));
+
+		super.afterConnectionEstablished(session);
+	}
+
+	@Override
+	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception { // 소켓에 들어오는 메세지를
+																										// 처리
+		log.info("메세지 들어오는 지 확인 : " + "소켓" + session + "  , 메세지 : " + message);
+
+		log.info("message.getPayload().toString() : " + message.getPayload().toString());
+		// 메세지를 받을 사람들을 담을 리스트
+		List<NotifyVO> notiEmpList = new ArrayList<NotifyVO>();
+		// 메세지를 스트링으로 변환
+		String receiveMessage = message.getPayload().toString();
+
+		// 메세지가 일정일 경우
+		if (receiveMessage.contains("일정")) {
+			String[] ArrMessage = receiveMessage.split(",");
+			String msg = ArrMessage[1];
+
+			TextMessage tmpMsg = new TextMessage("회사일정(" + msg + ")이 추가되었습니다");
+			// 회사일정은 전체 사원을 조회하여 확인한다.
+			List<EmpVO> empList = adminEmpMapper.selectList();
+
+			for (int i = 0; i < empList.size(); i++) {
+				log.info("여기가 돌아가는지 확인 " + empList);
+				if (empList.get(i).getNotiList().contains("일정")) {
+					System.out.println("empList.get(i).getEmpNo()) 확인 : "+empList.get(i).getEmpNo());
+					if (userSessionMap.containsKey(empList.get(i).getEmpNo())) {
+						// 메세지 전송
+						userSessionMap.get(empList.get(i).getEmpNo()).sendMessage(tmpMsg);
+					}
+				} else {
+					continue;
+				}
+			}
+
+		} else if (receiveMessage.contains("결재")) {
+			TextMessage tmpMsg = new TextMessage("결재 문서가 도착하였습니다.");
+			// 결재,A0110123131,A0101321.. 이런형태를 잘라서 배열에 담는다
+			String[] receiver = receiveMessage.split(",");
+
+			for (int i = 1; i < receiver.length; i++) {
+				// 어떤 알림을 받을지 설정 여부 확인
+				String empNo = receiver[i];
+				EmpVO empVO = empMapper.readByUserId(empNo);
+				System.out.println("empVO : " + empVO);
+				// empVO 안에 결재 알림을 받을 설정이 되어있다면
+				if (empVO.getNotiList().contains("결재")) {
+					// 로그인한 세션갑에서 아이디를 찾아 메세지를 보내준다.
+					if (userSessionMap.containsKey(receiver[i])) {
+						userSessionMap.get(receiver[i]).sendMessage(tmpMsg);
+					} else {
+						continue;
+					}
+				}
+			}
+
+		} else if (receiveMessage.contains("참조")) {
+			TextMessage tmpMsg = new TextMessage("참조 문서가 도착하였습니다.");
+			// 참조,A0110123131,A0101321.. 이런형태를 잘라서 배열에 담는다
+			String[] receiver = receiveMessage.split(",");
+			for (int i = 1; i < receiver.length; i++) {
+				// 어떤 알림을 받을지 설정 여부 확인
+				String empNo = receiver[i];
+				EmpVO empVO = empMapper.readByUserId(empNo);
+				System.out.println("참조에서 empVO  : " + empVO);
+				// empVO 안에 결재 알림을 받을 설정이 되어있다면
+				if (empVO.getNotiList().contains("참조")) {
+					// 로그인한 세션갑에서 아이디를 찾아 메세지를 보내준다.
+					if (userSessionMap.containsKey(receiver[i])) {
+						userSessionMap.get(receiver[i]).sendMessage(tmpMsg);
+					} else {
+						continue;
+					}
+				}
+			}
+
+		} else if (receiveMessage.contains("업무")) {
+			TextMessage tmpMsg = new TextMessage("업무 요청이 도착하였습니다.");
+			String[] receiver = receiveMessage.split(",");
+			for (int i = 1; i < receiver.length; i++) {
+				// 어떤 알림을 받을지 설정 여부 확인
+				String empNo = receiver[i];
+				EmpVO empVO = empMapper.readByUserId(empNo);
+				System.out.println("참조에서 empVO  : " + empVO);
+				// empVO 안에 결재 알림을 받을 설정이 되어있다면
+				if (empVO.getNotiList().contains("업무")) {
+					// 로그인한 세션갑에서 아이디를 찾아 메세지를 보내준다.
+					if (userSessionMap.containsKey(receiver[i])) {
+						userSessionMap.get(receiver[i]).sendMessage(tmpMsg);
+					} else {
+						continue;
+					}
+				}
+			}
+
+		}
+
+		super.handleTextMessage(session, message);
+	}
+
+	@Override
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception { // 소켓 연결 종료
+		log.info("소켓 연결 종료...!");
+		super.afterConnectionClosed(session, status);
+	}
+
+}

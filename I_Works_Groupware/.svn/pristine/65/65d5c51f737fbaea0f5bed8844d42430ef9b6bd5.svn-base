@@ -1,0 +1,23 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class ChatRoomDTLVO {	// 채팅방 상세보기 저장
+	// ChatVO
+	private int chatNo;
+	private Date chatDate;
+	private String chatMsg; 
+	private String chasenderEmpno;
+	private int chatUncheck;
+	private String crNo;
+	// 채팅 유저 프로필 목록(EmpVO)
+	private String empPhoto;
+	// 채팅초대(처음 들어올떄), 읽음표식(마지막읽은 채팅넘버)
+}

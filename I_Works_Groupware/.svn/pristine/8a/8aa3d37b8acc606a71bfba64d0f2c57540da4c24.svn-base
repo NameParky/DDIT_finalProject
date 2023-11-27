@@ -1,0 +1,207 @@
+package kr.or.ddit.controller.files;
+
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.compress.utils.IOUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import kr.or.ddit.service.IFileService;
+import kr.or.ddit.vo.FolderFileVO;
+import kr.or.ddit.vo.FolderVO;
+
+@Controller
+public class indFilesController {
+	
+	@Inject
+	private IFileService service;
+	
+	private void setFileBar(Model model) {
+		String fileBar = "EXIST";
+		model.addAttribute("fileBar", fileBar);
+	}
+	
+	// 개인자료실로 이동
+	@RequestMapping(value="/indfiles.do", method=RequestMethod.GET)
+	public String IndividualFiles(Model model, HttpServletRequest req, HttpServletResponse resp) {
+		
+		// 파일을 업로드하고 업로드한 위치로 돌려주는 로직
+		HttpSession session = req.getSession();
+		System.out.println(req.getSession().getAttribute("folderCd"));
+		if(session==null) {
+		}else {
+			String folderCd = (String)session.getAttribute("folderCd");
+			session.removeAttribute("folderCd");
+			if(folderCd==null) {
+			}else {
+				FolderVO folderVO = new FolderVO();
+				folderVO.setFolderCd(folderCd);
+				List<FolderVO> childFolder = service.selectChildFolder(folderVO);
+				List<FolderFileVO> childFile = service.selectChildFile(folderVO);
+				
+				model.addAttribute("fileList", childFile);
+				model.addAttribute("FolderList", childFolder);
+				model.addAttribute("parentCd", folderVO);
+				return "main/files/individualFiles";
+			}
+		}
+		
+		// 파일을 업로드하지 않고 순수 get방식으로 접근했을때 처음위치를 보여주는 로직.
+		FolderVO folderVO = new FolderVO();
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		String fileSavepath = req.getServletContext().getRealPath("/"+"resources"+"/"+"file")+"/"+empNo;
+		System.out.println(fileSavepath);
+		
+		File filePath = new File(fileSavepath);
+		
+		if(!filePath.exists()) {
+			filePath.mkdirs();
+			
+		}
+		folderVO.setEmpNo(empNo);
+		
+		if(service.selectDefaultIndFolder(folderVO) < 1) {
+			service.insertDefaultIndFolder(folderVO);
+		}
+		
+		System.out.println("디폴트 폴더 가져오기");
+		folderVO = service.selectIndFolder(folderVO);
+		System.out.print("폴더보 : ");
+		System.out.println(folderVO);
+		System.out.println("디폴트폴더 차일드 가져오기");
+		List<FolderVO> FolderList = service.selectChildFolder(folderVO);
+		List<FolderFileVO> childFile = service.selectChildFile(folderVO);
+		
+		model.addAttribute("fileList", childFile);
+		model.addAttribute("parentCd", folderVO);
+		model.addAttribute("FolderList",FolderList);
+		setFileBar(model);
+		return "main/files/individualFiles";
+	}
+	
+	// POST로 데이터를 받아 폴더안쪽으로 이동
+	@RequestMapping(value="/indfiles.do", method=RequestMethod.POST)
+	public String IndevidualFiles(Model model, FolderVO folderVO) {
+		
+		List<FolderVO> childFolder = service.selectChildFolder(folderVO);
+		List<FolderFileVO> childFile = service.selectChildFile(folderVO);
+		
+		model.addAttribute("fileList", childFile);
+		model.addAttribute("FolderList", childFolder);
+		model.addAttribute("parentCd", folderVO);
+		setFileBar(model);
+		return "main/files/individualFiles";
+	}
+	// POST로 폴더이름을 받아 폴더생성.
+	@RequestMapping(value="/InsertIndFileFolder.do", method=RequestMethod.POST)
+	public String InsertIndFileFolder(
+			FolderVO folderVO, 
+			Model model, 
+			HttpServletRequest req, HttpServletResponse resp) {
+		
+		service.insertIndFolder(folderVO , req, resp);
+		
+		return "redirect:/indfiles.do";	
+	}
+	
+	// POST로 파일이름과 형태를 멀티파일형태로 받아 형태저장.
+	@RequestMapping(value="/insertIndFileFile.do", method=RequestMethod.POST)
+	public String InsertIndFileFile(
+			FolderVO folderVO,
+			Model model,
+			HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		
+		service.insertIndFile(folderVO, req, resp);
+		
+		return "redirect:/indfiles.do";
+	}
+	
+	@RequestMapping(value="/fileDownloadAjax.do", method=RequestMethod.GET)
+	public ResponseEntity<byte[]> fileDownloadAjax(
+			String submitFileCd,
+			HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
+		FolderFileVO folderFileVO = new FolderFileVO();
+		folderFileVO.setFileCd(submitFileCd);
+		folderFileVO = service.selectMyselfFile(folderFileVO);
+		
+		String fileName = "";
+		InputStream in = null;
+		ResponseEntity<byte[]> entity = null;
+		
+		String headerKind = request.getHeader("User-Agent");
+		
+		if ((headerKind.contains("MSIE")) || (headerKind.contains("Trident")) || (headerKind.contains("Edge"))) {
+		  fileName = URLEncoder.encode(folderFileVO.getFileOrgname(), "UTF-8");
+		} else {
+		  fileName = new String(folderFileVO.getFileOrgname().getBytes("UTF-8"), "iso-8859-1");
+		}
+		
+		File file = new File(request.getServletContext().getRealPath("")
+				+folderFileVO.getFileSavepath() ,folderFileVO.getFileSavename());
+		
+		fileName += "."+folderFileVO.getFileType();
+		
+		try {
+			HttpHeaders header = new HttpHeaders();
+			in = new FileInputStream(file);
+			header.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+			header.add("Content-Disposition", "attachment; filename=\"" + fileName +"\"");
+			entity = new ResponseEntity<byte[]>(IOUtils.toByteArray(in), header, HttpStatus.CREATED);
+		}catch(Exception e) {
+			e.printStackTrace();
+			entity = new ResponseEntity<byte[]>(HttpStatus.BAD_REQUEST);
+		}
+		
+		
+		return entity;
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

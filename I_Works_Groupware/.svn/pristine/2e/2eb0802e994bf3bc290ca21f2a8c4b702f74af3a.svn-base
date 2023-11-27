@@ -1,0 +1,27 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class FileVO {
+	// 첨부파일 코드
+	public String fileNo;
+	// 첨부파일 순번
+	public int fileSec;
+	// 파일 원본 파일명
+	public String fileOrgName;
+	// 파일 저장 파일명
+	public String fileSaveName;
+	// 파일 저장 경로
+	public String fileSavePath;
+	// 파일 크기
+	public int fileSize;
+	// 파일 MIME 타입
+	public String fileMime;
+	// 파일 확장자
+	public String fileType;
+}

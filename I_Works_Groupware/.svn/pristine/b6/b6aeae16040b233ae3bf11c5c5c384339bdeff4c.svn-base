@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.ClubBoardMapper">
+
+	<insert id="insertClub" parameterType="clubVO" useGeneratedKeys="true">
+		<selectKey keyProperty="clubCd" resultType="String" order="BEFORE"> 
+			SELECT 'CB'||club_seq.nextval FROM dual
+		</selectKey>
+		INSERT INTO club (
+		    club_cd
+		    , club_name
+		    , club_date
+		    , club_info
+		    , club_photo
+		    , club_empno
+		    , club_se
+		    , club_reason
+		) VALUES (
+		    #{clubCd}
+		  , #{clubName}
+		  , sysdate
+		  , #{clubInfo}
+		  , #{clubPhoto, jdbcType=VARCHAR}
+		  , #{clubEmpno}
+		  , 0
+		  , #{clubReason, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<update id="updateClub" parameterType="clubVO">
+		UPDATE club
+		SET
+		    club_photo = #{clubPhoto}
+		WHERE
+		    club_cd = #{clubCd}
+	</update>
+	
+	<select id="">
+		SELECT
+		    club_cd
+		  , club_name
+		  , club_date
+		  , club_info
+		  , club_photo
+		  , club_empno
+		  , club_se
+		  , club_reason
+		FROM
+		    club
+		WHERE
+			
+	</select>
+
+</mapper>

@@ -1,0 +1,47 @@
+package kr.or.ddit.service.impl;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mapper.ChatMapper;
+import kr.or.ddit.service.IChatService;
+import kr.or.ddit.vo.ChatRoomDTLVO;
+import kr.or.ddit.vo.ChatVO;
+import kr.or.ddit.vo.chatSelectResultVO;
+
+@Service
+public class ChatServiceImpl implements IChatService {
+
+	@Inject
+	private ChatMapper mapper;
+	
+	@Override
+	public void insertChatting(String msg, String crNo, String empNo) {
+		ChatVO chat = new ChatVO();
+		chat.setCrNo(crNo);
+		chat.setChasenderEmpno(empNo);
+		int memNum = mapper.selectCRMemNum(chat);
+		chat.setChatUncheck(memNum);
+		chat.setChatMsg(msg);
+		System.out.println("chat Impl : " + chat);
+		// 채팅방 멤버 n조회
+		mapper.insert(chat);
+	}
+	@Override
+	public List<chatSelectResultVO> selectChatRoom(String chatuser) {
+		return mapper.selectChatRoom(chatuser);
+	}
+	@Override
+	public List<chatSelectResultVO> selectChatUser(String chatuser) {
+		return mapper.selectChatUser(chatuser);
+	}
+	@Override
+	public List<ChatRoomDTLVO> selectRoomDetail(ChatVO chat) {
+		return mapper.selectRoomDetail(chat);
+	}
+
+
+}

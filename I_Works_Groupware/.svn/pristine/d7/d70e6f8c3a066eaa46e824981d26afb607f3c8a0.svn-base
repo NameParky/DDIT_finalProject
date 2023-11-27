@@ -1,0 +1,12 @@
+package kr.or.ddit.mapper;
+
+import kr.or.ddit.vo.CommentVO;
+
+public interface CommentMapper {
+
+	public int insertComment(CommentVO commentVO);
+	public CommentVO selectComment(String cmNo);
+	public void deleteComment(String cmNo);
+	public void updateComment(CommentVO commentVO);
+
+}

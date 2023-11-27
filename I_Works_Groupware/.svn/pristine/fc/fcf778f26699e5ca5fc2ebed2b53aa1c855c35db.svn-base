@@ -1,0 +1,315 @@
+package kr.or.ddit.controller.authorization;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.service.IAuthService;
+import kr.or.ddit.vo.AtrzFormVO;
+import kr.or.ddit.vo.AtrzPathVO;
+import kr.or.ddit.vo.DraftRefVO;
+import kr.or.ddit.vo.DraftVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class AuthorizationController {
+
+	@Inject
+	private IAuthService authService;
+	
+	//기안서 작성 화면
+	@RequestMapping(value = "/draft/write.do", method = RequestMethod.GET)
+	public String draftWrite(Model model, AtrzFormVO atrzformVO) {
+		List<AtrzFormVO> atrzfList = authService.selectAtrzForm();
+		model.addAttribute("docList", atrzfList);
+		log.info("컨트롤러에 들어왔나>> " + atrzfList);
+		return "main/draft/draftingwrite";
+	}
+	
+	//결재 양식 불러오기(ajax)
+	@ResponseBody
+	@RequestMapping(value = "/draft/write.do", method = RequestMethod.POST, consumes = "application/json;")
+	public ResponseEntity<String> draftWriteForm(Model model, @RequestBody Map<String, String> map) {
+		log.info("draftingWriteForm 실행");
+		String atrzfCd = map.get("atrzfCd").toString();
+		log.info("넘겨받은 기안서코드 : " + atrzfCd);
+		AtrzFormVO atrzFormVO = authService.selectAtrzContent(atrzfCd);
+		model.addAttribute("doc", atrzFormVO);
+		log.info("기안서 양식 : "+ atrzFormVO);
+		
+		// Header 추가 설정[인코딩]
+        HttpHeaders resHeaders = new HttpHeaders();
+        resHeaders.add("Content-Type", "text/html; charset=UTF-8");
+		ResponseEntity<String> entity = new ResponseEntity<String>(atrzFormVO.getAtrzfContent(), resHeaders, HttpStatus.OK);
+		return entity;
+	}
+	
+	//기안함 > 임시저장 문서함
+	@RequestMapping(value="/draft/tempsave.do", method = RequestMethod.GET)
+	public String tempSaveDoc(Model model) {
+		// 스프링 시큐리티를 이용한  사번 
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String empNo = user.getUsername();
+		List<DraftVO> tempSaveList = authService.selectTempSaveList(empNo);
+		model.addAttribute("tempSaveList", tempSaveList);
+		return "main/draft/tempsavedocument";
+	}
+	
+	// 임시저장 버튼 눌렀을때
+	@RequestMapping(value="/draft/tempsave.do", method = RequestMethod.POST)
+	public String tempSaveDocPost(Model model, DraftVO draftVO, String atrzfCd, String[] refEmpno, String[] atrzpEmpno) {
+		log.info("tempSaveDocPost 실행");
+		String goPage="";
+		
+		// 결재양식 코드
+		draftVO.setAtrzfCd(atrzfCd);
+		// 스프링 시큐리티를 이용한  draftVO에 사번 셋팅
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		draftVO.setEmpNo(user.getUsername());
+ 
+		ServiceResult result = authService.draftTempSaveInsert(draftVO);
+		model.addAttribute("draftVO", draftVO);
+		// 결재자 세팅
+		// atrzpEmpno >> 2310A01002_2
+		AtrzPathVO pathVO = new AtrzPathVO();
+		if(atrzpEmpno == null) {		// atrzpEmpno 없을 때 처리
+			//pathVO.setAtrzpEmpno(null);
+			//pathVO.setAtrzpOrder(null);
+			log.info("여기까지 되는지 확인");
+			pathVO.setAtrzpEmpno("null");
+			ServiceResult result2 = authService.pathInsert(pathVO);
+		}else {
+			for(int i=0; i< atrzpEmpno.length; i++) {
+				String pathEmpno = atrzpEmpno[i].substring(0,10);	// 2310A01002
+				String pathOrder = atrzpEmpno[i].substring(11,12);	// 우선순위
+				log.info("pathEmpno 결재선 결재자 >> " + pathEmpno);
+				log.info("pathOrder 결재 우선순위 >> " + pathOrder);
+				pathVO.setAtrzpEmpno(pathEmpno);
+				//String -> int로
+				pathVO.setAtrzpOrder(Integer.parseInt(pathOrder));
+				ServiceResult result2 = authService.pathInsert(pathVO);
+			}
+		}
+		
+		// 참조자 세팅
+		DraftRefVO refVO = new DraftRefVO();
+		if(refEmpno == null) {
+			refVO.setRefEmpno("null");
+			ServiceResult result3 = authService.refInsert(refVO);
+		}else {
+			for(int i=0; i< refEmpno.length; i++) {	
+				if(refEmpno[i].length() == 10) { //(사번:길이가 10일 때 셋팅  //2310A01003)	
+					refVO.setRefEmpno(refEmpno[i]);
+					log.info("참조자  >> " + refEmpno[i]);
+					ServiceResult result3 = authService.refInsert(refVO);
+				}
+			}
+		}
+		if(result.equals(ServiceResult.OK)) {
+			goPage = "redirect:/draft/tempsave.do";
+		}else {
+			goPage = "main/draft/draftingwrite";
+		}
+		return goPage;
+	}
+	
+	//임시저장 디테일 페이지
+	@RequestMapping(value="/draft/tempsavedetail.do", method = RequestMethod.GET)
+	public String tempSaveDetail(Model model, DraftVO draftVO, AtrzFormVO atrzformVO, AtrzPathVO pathVO, DraftRefVO refVO) {
+		// 기안서 양식
+		List<AtrzFormVO> atrzfList = authService.selectAtrzForm();
+		model.addAttribute("docList", atrzfList);
+		
+		// 스프링 시큐리티를 이용한  draftVO에 사번 셋팅
+		// 스프링 시큐리티를 이용한  사번 
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		draftVO.setEmpNo(user.getUsername());
+		
+		//기안관련
+		DraftVO tempSaveDetail = authService.tempSaveDetail(draftVO);
+		model.addAttribute("draftVO", tempSaveDetail);
+		log.info("draftVO >> "+ tempSaveDetail);
+		
+		//결재자 / 사번, 이름, 부서, 직급, 우선순위
+		List<AtrzPathVO> pathSelect= authService.pathSelect(draftVO);
+		model.addAttribute("pathList", pathSelect);
+		log.info("결재자  >> "+ pathSelect);
+
+		//참조자 / 사번, 이름, 부서, 직급
+		List<DraftRefVO> refSelect = authService.refSelect(draftVO);
+		model.addAttribute("refList", refSelect);
+		log.info("참조자 >>" + refSelect);
+		return "main/draft/tempsavedetail";
+	}
+	
+	//임시저장 삭제
+	@RequestMapping(value="/draft/tempsavedelete.do", method = RequestMethod.POST)
+	public String tempSaveDelete(Model model, String drftCd, RedirectAttributes ra) {
+		String goPage ="";
+		ServiceResult result = authService.tempSaveDelete(drftCd);
+		if(result.equals(ServiceResult.OK)) {
+			ra.addFlashAttribute("message", "삭제가 완료되었습니다!");
+			goPage = "redirect:/draft/tempsave.do";
+		}else {
+			ra.addFlashAttribute("message", "서버오류, 다시 시도해주세요!");
+			goPage = "redirect:/draft/tempsave.do?drftCd"+ drftCd;
+		}
+		return goPage;
+	}
+	
+	
+	//기안함 > 진행중 문서
+	@RequestMapping(value="/draft/progdoc.do", method = RequestMethod.GET)
+	public String progressDoc() {
+		return "main/draft/progressdocument";
+	}
+	
+	//임시저장 -> 기안 버튼 클릭
+	@ResponseBody
+	@RequestMapping(value="/draft/approval.do", method = RequestMethod.POST)
+	public String approval(Model model, @RequestBody Map<String, String> map, String drftCd,
+								DraftVO draftVO, String[] refEmpno, String[] atrzpEmpno) {
+		String goPage ="";
+		authService.tempSaveDelete(drftCd);	//임시저장, 결재선, 참조자 다 삭제
+		log.info("임시저장, 결재선, 참조자 다 삭제");
+		// 결재양식 코드
+		String atrzfCd = map.get("atrzfCd").toString();
+		draftVO.setAtrzfCd(atrzfCd);
+		// 스프링 시큐리티를 이용한  draftVO에 사번 셋팅
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		draftVO.setEmpNo(user.getUsername());
+ 
+		ServiceResult result = authService.approvalInsert(draftVO);
+		model.addAttribute("draftVO", draftVO);
+		// 결재자 세팅
+		// atrzpEmpno >> 2310A01002_2
+		AtrzPathVO pathVO = new AtrzPathVO();
+			for(int i=0; i< atrzpEmpno.length; i++) {
+				String pathEmpno = atrzpEmpno[i].substring(0,10);	// 2310A01002
+				String pathOrder = atrzpEmpno[i].substring(11,12);	// 우선순위
+				log.info("pathEmpno 결재선 결재자 >> " + pathEmpno);
+				log.info("pathOrder 결재 우선순위 >> " + pathOrder);
+				pathVO.setAtrzpEmpno(pathEmpno);
+				//String -> int로
+				pathVO.setAtrzpOrder(Integer.parseInt(pathOrder));
+				ServiceResult result2 = authService.pathInsert(pathVO);
+			}
+		
+		// 참조자 세팅
+		DraftRefVO refVO = new DraftRefVO();
+		if(refEmpno == null) {
+			refVO.setRefEmpno("null");
+			ServiceResult result3 = authService.refInsert(refVO);
+		}else {
+			for(int i=0; i< refEmpno.length; i++) {	
+				if(refEmpno[i].length() == 10) { //(사번:길이가 10일 때 셋팅  //2310A01003)	
+					refVO.setRefEmpno(refEmpno[i]);
+					log.info("참조자  >> " + refEmpno[i]);
+					ServiceResult result3 = authService.refInsert(refVO);
+				}
+			}
+		}
+		if(result.equals(ServiceResult.OK)) {
+			goPage = "redirect:/draft/progdoc.do";
+		}else {
+			goPage = "main/draft/draftingwrite";
+		}
+		return goPage;
+	}
+	
+	
+	@RequestMapping(value="/draft/progdetail.do", method = RequestMethod.GET)
+	public String progressDetail() {
+		return "main/draft/progressdetail";
+	}
+	
+	//기안함 > 반려문서
+	@RequestMapping(value="/draft/retdoc.do", method = RequestMethod.GET)
+	public String returnDoc() {
+		return "main/draft/returndocument";
+	}
+
+	@RequestMapping(value="/draft/retdetail.do", method = RequestMethod.GET)
+	public String returnDetail() {
+		return "main/draft/returndetail";
+	}
+	
+	//기안함 > 완료문서
+	@RequestMapping(value="/draft/comdoc.do", method = RequestMethod.GET)
+	public String completeDoc() {
+		return "main/draft/completedocument";
+	}
+	
+	@RequestMapping(value="/draft/comdetail.do", method = RequestMethod.GET)
+	public String completeDetail() {
+		return "main/draft/completedetail";
+	}
+	
+	
+	// 결재함 > 결재대기 문서
+	@RequestMapping(value="/auth/waitdoc.do", method = RequestMethod.GET)
+	public String waitingDoc() {
+		return "main/authorization/waitdoc";
+	}
+	
+	@RequestMapping(value="/auth/waitdetail.do", method = RequestMethod.GET)
+	public String waitingDetail() {
+		return "main/authorization/waitdetail";
+	}
+	
+	// 결재함 > 참조 문서
+	@RequestMapping(value="/auth/refdoc.do", method = RequestMethod.GET)
+	public String referDoc() {
+		return "main/authorization/referdoc";
+	}
+	
+	@RequestMapping(value="/auth/refdetail.do", method = RequestMethod.GET)
+	public String referDetail() {
+		return "main/authorization/referdetail";
+	}
+	
+	// 결재함 > 반려문서
+	@RequestMapping(value="/auth/retdoc.do", method = RequestMethod.GET)
+	public String retDoc() {
+		return "main/authorization/retdoc";
+	}
+	
+	@RequestMapping(value="/auth/retdetail.do", method = RequestMethod.GET)
+	public String retDetail() {
+		return "main/authorization/retdetail";
+	}
+	
+	
+	// 결재함 > 완료문서
+	@RequestMapping(value="/auth/comdoc.do", method = RequestMethod.GET)
+	public String comDoc() {
+		return "main/authorization/comdoc";
+	}
+	
+	@RequestMapping(value="/auth/comdetail.do", method = RequestMethod.GET)
+	public String comDetail() {
+		return "main/authorization/comdetail";
+	}
+	
+	// 결재함 > 결재선 관리
+	@RequestMapping(value="/auth/appline.do", method = RequestMethod.GET)
+	public String applineManage() {
+		return "main/authorization/appline";
+	}
+}

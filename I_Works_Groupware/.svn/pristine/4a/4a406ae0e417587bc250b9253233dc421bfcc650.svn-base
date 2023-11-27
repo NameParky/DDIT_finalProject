@@ -1,0 +1,162 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내업무현황</title>
+</head>
+<body>
+
+<div class="container">
+    <h2>내업무현황<span style="margin-right: 20px;"></span></h2>
+    <br>
+    <div class="row">
+        <div class="col-6">
+            <p style="font-size: 20px;">프로젝트1<span style="margin-right: 20px;"></span>
+            <button class="btn btn-outline-info me-1 mb-1" type="button" style="height: 37px;" onclick="location.href='taskgantt.do'">간트차트</button></p>
+        </div>
+        <div class="col-6 text-end">
+            <button class="btn btn-outline-info me-1 mb-1" type="button" style="height: 37px;">수정</button>
+            <button class="btn btn-outline-info me-1 mb-1" type="button" style="height: 37px;">삭제</button>
+        </div>
+    </div>
+    
+    <div class="float">
+    	<div class="d-flex">
+	        <div class="col-4">
+            <div class="progress" style="height:15px; width:500px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 50%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">50%</div>
+            </div>
+        </div>
+        <div style="margin:0 auto;">
+            <p>2023.09.05 ~ 2023.11.17</p>
+        </div>
+        </div>
+    </div>
+    
+    <div class="float">
+    	<div class="d-flex">
+	        <div class="col-1">
+            <h4>업무 책임자</h4>
+        </div>
+        <div class="col-2">
+            <div class="avatar avatar-xl ">
+            	<img class="rounded-circle " src="assets/img/team/72x72/57.webp" alt="" />
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <div class="float">
+    	<div class="d-flex">
+	        <div>
+				<h4>팀원</h4>
+        	</div><span style="width:10px;"></span>
+			<div>
+	            <div class="avatar avatar-xl ">
+	            	<img class="rounded-circle " src="assets/img/team/72x72/57.webp" alt="" />
+	            </div>
+	            <div class="avatar avatar-xl ">
+	            	<img class="rounded-circle " src="assets/img/team/72x72/57.webp" alt="" />
+	            </div>
+	        </div>
+        </div>
+    </div>
+    <br>
+    
+    <div class="float">
+    	<div class="d-flex">
+	        <div>
+	            <h4>업무 유형</h4>
+	        </div>
+        <span style="width:10px;"></span>
+        <p>단기 프로젝트</p>
+        </div>
+    </div>
+    
+    <div class="float">
+    	<div class="d-flex">
+	        <div>
+	            <h4>업무 내용</h4>
+	        </div>
+        <span style="width:10px;"></span>
+        <p>프로젝트1에 대한 업무내용입니다.</p>
+        </div>
+    </div>
+    
+    <div class="float">
+    	<div class="d-flex">
+	        <div>
+	            <h4>비고</h4>
+	        </div>
+        <span style="width:10px;"></span>
+        <p>프로젝트 메모입니다.</p>
+        </div>
+    </div>
+    
+    
+    <div class="border-top">
+            <div id="purchasersSellersTable" data-list='{"valueNames":["deals_name","deal_owner","account_name","stage","amount"],"page":10,"pagination":true}'>
+              <div class="table-responsive scrollbar mx-n1 px-1">
+                <table class="table table-sm fs--1 leads-table">
+                  <thead>
+                    <tr>
+                      <th class="white-space-nowrap fs--1 align-middle ps-0" style="max-width:20px; width:18px;">
+                        <div class="form-check mb-0 fs-0">
+                          <input class="form-check-input" type="checkbox" data-bulk-select='{"body":"purchasers-sellers-body"}' />
+                        </div>
+                      </th>
+                      <th class="align-middle ps-0 pe-5 " scope="col" data-sort="deals_name" style="min-width:120px;">담당자</th>
+                      <th class="align-middle ps-4 pe-5 text-uppercase text-nowrap" scope="col" data-sort="deal_owner" style="min-width:50px;">내용</th>
+                      <th class="align-middle ps-4 pe-5 text-uppercase text-nowrap" scope="col" data-sort="account_name" style="min-width:250px;">세부업무 기간</th>
+                      <th class="align-middle ps-4 pe-5 text-uppercase text-nowrap" scope="col" data-sort="stage" style="min-width:160px;">비고</th>
+                      <th class="align-middle">
+                      	<button class="align-middle btn btn-outline-info me-1 mb-1" type="button" style="height:37px;">등록</button>
+                      </th>
+                      <th class="text-end align-middle pe-0 ps-4" scope="col"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="list" id="purchasers-sellers-body">
+                    <tr class="hover-actions-trigger btn-reveal-trigger position-static">
+                      <td class="fs--1 align-middle py-0">
+                        <div class="form-check mb-0 fs-0">
+                          <input class="form-check-input" type="checkbox" data-bulk-select-row='{"dealsName":"Jo_Td01","dealOwner":{"avatar":"team/avatar.webp","name":"Ally Aagaard","placeholder":true},"accountName":"Themewagon","stage":{"label":"Analysis","color":"#3874FF","data":20},"amount":{"totalAmount":"$140","icon":"trending-down","color":"text-danger"}}' />
+                        </div>
+                      </td>
+                      <td class="align-middle">
+                        <div class="d-flex align-items-center position-relative">
+                          <div class="avatar avatar-m me-3"><img class="rounded-circle avatar-placeholder" src="assets/img/team/avatar.webp" alt="" />
+                          </div><p class="text-1000 fw-bold">사원1</p>
+                        </div>
+                      </td>
+                      <td class="account_name align-middle white-space-nowrap ps-4 fw-semi-bold text-900 py-0">세부업무1에 대한 설명입니다.</td>
+                      <td class="account_name align-middle white-space-nowrap ps-4 fw-semi-bold text-900 py-0">2023.09.05~2023.10.05</td>
+                      <td class="account_name align-middle white-space-nowrap ps-4 fw-semi-bold text-900 py-0">세부업무1에 대한 메모입니다.</td>
+                      <td class="align-middle">
+                      	<button class="align-middle btn btn-outline-info me-1 mb-1" type="button" style="height:37px;">삭제</button>
+                      </td>
+                    </tr>
+                    
+                    
+                    
+                    
+                    
+                    
+                  </tbody>
+                </table>
+              </div>
+              <div class="row align-items-center justify-content-between pe-0 fs--1">
+                <div class="col-auto d-flex">
+                  <button class="page-link" data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
+                  <ul class="mb-0 pagination"></ul>
+                  <button class="page-link pe-0" data-list-pagination="next"><span class="fas fa-chevron-right"></span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+    
+</div>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+package kr.or.ddit.controller.notify;
+
+import kr.or.ddit.vo.NotifyVO;
+
+public class NotifyInsertController {
+// 알림 인서트 시 notifyVO 생성 리턴 
+	public NotifyVO insertNoti(String empNo, String msg) {
+		NotifyVO notifyVO = new NotifyVO();
+		
+		if(msg.equals("결재")) {
+			notifyVO.setNotifyContent("결재 문서가 도착하였습니다.");
+			notifyVO.setNotifyEmpno(empNo);
+		}else if(msg.equals("참조")) {
+			notifyVO.setNotifyContent("참조 문서가 도착하였습니다.");
+			notifyVO.setNotifyEmpno(empNo);
+		}else if(msg.equals("일정")) {
+			notifyVO.setNotifyContent("회사 일정이 추가되었습니다.");
+			notifyVO.setNotifyEmpno(empNo);
+		}
+		
+		return notifyVO;
+	}
+	
+}

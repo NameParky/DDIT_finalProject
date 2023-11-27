@@ -1,0 +1,12 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.BoardFreeVO;
+
+public interface FreeMapper {
+	// 자유게시판 조회
+	public List<BoardFreeVO> freeList();
+	// 글쓴이 사번으로 이름 조회
+	public String selectUserName(String empNo);
+}

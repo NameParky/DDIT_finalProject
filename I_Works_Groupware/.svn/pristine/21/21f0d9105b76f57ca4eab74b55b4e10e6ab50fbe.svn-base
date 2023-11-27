@@ -1,0 +1,63 @@
+package kr.or.ddit.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mapper.NoticeMapper;
+import kr.or.ddit.service.IBoardNoticeService;
+import kr.or.ddit.vo.BoardNoticeVO;
+import kr.or.ddit.vo.FileVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class BoardNoticeServiceImpl implements IBoardNoticeService{
+
+	@Inject
+	private NoticeMapper mapper;
+
+	@Override
+	public List<BoardNoticeVO> noticeList() {
+		log.info("[noticeList] list");
+		return mapper.noticeList();
+	}
+	@Override
+	public void insertNotice(BoardNoticeVO notice, HttpServletRequest req, HttpServletResponse res) {
+		List<FileVO> boardfile = new ArrayList<FileVO>();
+		mapper.insertNotice(notice);
+		
+		for(int i = 0; i < boardfile.size(); i++) {
+			FileVO file = boardfile.get(i);
+			String fileNo = "NO" + notice.getNoNo().toString();
+			file.setFileNo(fileNo);
+			int fileSec = i;
+			file.setFileSec(fileSec);
+			String orgName = notice.getNoFile().getOriginalFilename();
+			file.setFileOrgName(orgName);
+			String saveName = notice.getNoFile().getName();
+			file.setFileSaveName(saveName);
+			String savePath = req.getServletContext().getRealPath("/resources/board");
+			file.setFileSavePath(savePath);
+			int size = (int) notice.getNoFile().getSize();
+			file.setFileSize(size);
+			String mime = notice.getNoFile().getContentType();
+			file.setFileMime(mime);
+			int lastDotIndex = saveName.lastIndexOf(".");
+			if (lastDotIndex > 0) {
+			    String fileType = saveName.substring(lastDotIndex + 1);
+			    System.out.println("확장자: " + fileType);
+			    file.setFileType(fileType);
+			} else {
+			    System.out.println("확장자를 찾을 수 없습니다.");
+			}
+		}
+		
+	}
+
+}

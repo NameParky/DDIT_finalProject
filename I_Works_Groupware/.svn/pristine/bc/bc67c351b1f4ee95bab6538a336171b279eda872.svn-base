@@ -1,0 +1,17 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+
+@Data
+public class ClubVO {
+	private String clubCd;
+	private String clubName;
+	private Date clubDate;
+	private String clubInfo;
+	private String clubPhoto;
+	private String clubReason;
+	private String clubEmpno; // 동호회장
+	private String clubSe; // 승인상태
+}

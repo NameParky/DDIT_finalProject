@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.DocMapper">
+	<!-- 증명서 신청 내역 가져오기 -->
+	<select id="selectDocHistory" parameterType="string" resultType="docHistoryVO">
+		 SELECT
+		    emp_no, doc_date, doc_se, doc_name, doc_cd
+		FROM
+		    dochistory
+		WHERE
+		 	emp_no = #{empNo}
+	</select>
+	
+		
+	<insert id="appDoc" parameterType="docHistoryVO">
+		INSERT INTO dochistory (
+		    emp_no, doc_date , doc_se , doc_name, doc_cd
+		) VALUES (
+		    #{empNo}, sysdate, 'N', #{docName}, 'doc'||dochitory_seq.NEXTVAL
+		)
+	</insert>
+	
+	<update id="updateDocSe" parameterType="String">
+		update dochistory
+		set 
+			doc_se = 'Y'
+		where 
+			 doc_cd = #{docCd}
+	</update>
+	
+	<!-- 증명서 발급을 위해 증명서 정보 가져오기 -->
+	<select id="selectDoc" parameterType="string" resultType="docHistoryVO">
+		SELECT
+		    emp_no, doc_date, doc_se, doc_name, doc_cd
+		FROM
+		    dochistory
+		WHERE
+		 	doc_cd = #{docCd}
+	</select>
+</mapper>

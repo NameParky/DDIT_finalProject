@@ -1,0 +1,101 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+
+
+
+	<div class="pb-5">
+		<div class="row g-4">
+			<div class="col-12 col-xxl-6">
+				<div></div>
+			</div>
+
+		</div>
+	</div>
+	<div
+		class="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-white pt-7">
+		<div
+			data-list='{"valueNames":["product","customer","rating","review","time"],"page":6}'>
+
+
+			<div>
+				<div class="container-fluid">
+					<div class="card" style="">
+						<div class="row">
+							<div class="col-1" style=""></div>
+							<div class="col-9">
+								<h2 style="margin: 40px 0px 0px 20px">자유게시판</h2>
+							</div>
+							<div class="col-1 pt-7">
+								<div class="form-check">
+ 								 <input class="form-check-input" id="flexCheckDefault" type="checkbox" value="" />
+ 								 <label class="form-check-label" for="flexCheckDefault">익명사용</label>
+								</div>
+							</div>
+						</div>
+						<div class="row" style="margin: 20px 0px 0px 0px;">
+							<div class="col"></div>
+							<div class="col-10">
+								<input class="form-control form-control" id="sizingInput"
+									type="text" placeholder="제목을 입력해주세요." />
+							</div>
+							<div class="col"></div>
+						</div>
+
+						<div class="card-body">
+							<div class="row">
+								<div class="col-1"></div>
+								<div class="col-10">
+									<textarea class="form-control" id="exampleTextarea"
+										style="height: 1000px;"></textarea>
+								</div>
+								<div class="col-1"></div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-1"></div>
+							<div class="col-10">
+								<div class="mb-3  px-4 pb-5">
+  									<input class="form-control form-control-sm" id="customFileSm" type="file" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+			</div>
+			<div class="row align-items-center py-1">
+				<div class="pagination d-none"></div>
+				<div class="col d-flex fs--1">
+					<!-- 하단부 -->
+
+				</div>
+			</div>
+			<div class="row" style="margin: 15px 0px 20px 0px;">
+				<div class="col-9"></div>
+				<div class="col-3 text-end">
+					<button class="btn btn-primary me-1 mb-1" type="button">등록</button>
+					<button class="btn btn-primary me-1 mb-1" type="button" id="listBtn">목록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace('exampleTextarea'
+            , {height: 500                                                  
+            });
+	
+	var listBtn = $('#listBtn');
+	listBtn.on('click', function(){
+		location.href="/freemain.do";
+	});
+	
+});
+</script>
+
+
+
+

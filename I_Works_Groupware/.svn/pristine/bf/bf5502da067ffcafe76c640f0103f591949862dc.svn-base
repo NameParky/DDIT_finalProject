@@ -1,0 +1,325 @@
+package kr.or.ddit.controller.files;
+
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.compress.utils.IOUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.service.IFileService;
+import kr.or.ddit.vo.FolderFileVO;
+import kr.or.ddit.vo.FolderVO;
+
+@Controller
+public class indFilesController {
+	
+	@Inject
+	private IFileService service;
+	
+	private void setFileBar(Model model) {
+		String fileBar = "EXIST";
+		model.addAttribute("fileBar", fileBar);
+	}
+	
+	private static void zipFolder(String sourceFolder, String currentFolder, ZipOutputStream zos) throws IOException {
+		System.out.println("알집재귀호출 : ");
+		System.out.println(currentFolder);
+	    File folder = new File(currentFolder);
+	    System.out.println("알집재귀폴더");
+	    System.out.println(folder);
+	    if (folder == null || !folder.exists() || !folder.isDirectory()) {
+	        // 에러 처리: 폴더가 존재하지 않거나 폴더가 아닌 경우
+	        return;
+	    }
+
+	    File[] files = folder.listFiles();
+	    System.out.println("폴더리스트파일즈 : ");
+	    System.out.println(folder.listFiles());
+	    if (files == null) {
+	        // 에러 처리: 폴더가 비어있거나 읽을 수 없는 경우
+	        return;
+	    }
+	    
+	    for (File file : files) {
+	        if (file.isDirectory()) {
+	            // 하위 폴더의 경우 재귀적으로 폴더를 압축
+	            zipFolder(sourceFolder, file.getPath(), zos);
+	        } else {
+	            // 파일의 경우 압축
+	            String entryName = file.getPath().substring(sourceFolder.length() + 1);
+	            ZipEntry ze = new ZipEntry(entryName);
+	            zos.putNextEntry(ze);
+
+	            FileInputStream fis = new FileInputStream(file);
+	            byte[] buffer = new byte[1024];
+	            int len;
+	            while ((len = fis.read(buffer)) > 0) {
+	                zos.write(buffer, 0, len);
+	            }
+
+	            fis.close();
+	            zos.closeEntry();
+	        }
+	    }
+	}
+
+	
+	// 개인자료실로 이동
+	@RequestMapping(value="/indfiles.do", method=RequestMethod.GET)
+	public String IndividualFiles(Model model, HttpServletRequest req, HttpServletResponse resp) {
+		
+		// 파일을 업로드하고 업로드한 위치로 돌려주는 로직
+		HttpSession session = req.getSession();
+		System.out.println(req.getSession().getAttribute("folderCd"));
+		if(session==null) {
+		}else {
+			String folderCd = (String)session.getAttribute("folderCd");
+			String dup = (String)session.getAttribute("dup");
+			String fileDup = (String)session.getAttribute("fileDup");
+			session.removeAttribute("fileDup");
+			session.removeAttribute("folderCd");
+			session.removeAttribute("dup");
+			
+			if(folderCd==null) {
+			}else {
+				FolderVO folderVO = new FolderVO();
+				folderVO.setFolderCd(folderCd);
+				List<FolderVO> childFolder = service.selectChildFolder(folderVO);
+				List<FolderFileVO> childFile = service.selectChildFile(folderVO);
+				
+				model.addAttribute("fileDup", fileDup);
+				model.addAttribute("folderDup", dup);
+				model.addAttribute("fileList", childFile);
+				model.addAttribute("FolderList", childFolder);
+				model.addAttribute("parentCd", folderVO);
+				return "main/files/individualFiles";
+			}
+		}
+		
+		// 파일을 업로드하지 않고 순수 get방식으로 접근했을때 처음위치를 보여주는 로직.
+		FolderVO folderVO = new FolderVO();
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		String fileSavepath = req.getServletContext().getRealPath("/"+"resources"+"/"+"file")+"/"+empNo;
+		System.out.println(fileSavepath);
+		
+		File filePath = new File(fileSavepath);
+		
+		if(!filePath.exists()) {
+			filePath.mkdirs();
+			
+		}
+		folderVO.setEmpNo(empNo);
+		
+		if(service.selectDefaultIndFolder(folderVO) < 1) {
+			service.insertDefaultIndFolder(folderVO);
+		}
+		
+		System.out.println("디폴트 폴더 가져오기");
+		folderVO = service.selectIndFolder(folderVO);
+		System.out.print("폴더보 : ");
+		System.out.println(folderVO);
+		System.out.println("디폴트폴더 차일드 가져오기");
+		List<FolderVO> FolderList = service.selectChildFolder(folderVO);
+		List<FolderFileVO> childFile = service.selectChildFile(folderVO);
+		
+		model.addAttribute("fileList", childFile);
+		model.addAttribute("parentCd", folderVO);
+		model.addAttribute("FolderList",FolderList);
+		setFileBar(model);
+		return "main/files/individualFiles";
+	}
+	
+	// POST로 데이터를 받아 폴더안쪽으로 이동
+	@RequestMapping(value="/indfiles.do", method=RequestMethod.POST)
+	public String IndevidualFiles(Model model, FolderVO folderVO) {
+		
+		List<FolderVO> childFolder = service.selectChildFolder(folderVO);
+		List<FolderFileVO> childFile = service.selectChildFile(folderVO);
+		
+		model.addAttribute("fileList", childFile);
+		model.addAttribute("FolderList", childFolder);
+		model.addAttribute("parentCd", folderVO);
+		setFileBar(model);
+		return "main/files/individualFiles";
+	}
+	// POST로 폴더이름을 받아 폴더생성.
+	@RequestMapping(value="/InsertIndFileFolder.do", method=RequestMethod.POST)
+	public String InsertIndFileFolder(
+			FolderVO folderVO, 
+			Model model, 
+			HttpServletRequest req, HttpServletResponse resp) {
+		service.insertIndFolder(folderVO , req, resp);
+		return "redirect:/indfiles.do";	
+	}
+	
+	// POST로 파일이름과 형태를 멀티파일형태로 받아 형태저장.
+	@RequestMapping(value="/insertIndFileFile.do", method=RequestMethod.POST)
+	public String InsertIndFileFile(
+			FolderVO folderVO,
+			Model model,
+			HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		
+		service.insertIndFile(folderVO, req, resp);
+		
+		return "redirect:/indfiles.do";
+	}
+	
+	@RequestMapping(value="/fileDownload.do", method=RequestMethod.GET)
+	public ResponseEntity<byte[]> fileDownload(
+			String submitFileCd,
+			HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
+		
+		ResponseEntity<byte[]> entity = service.fileDownload(
+				submitFileCd, request, response);
+		
+		return entity;
+	}
+	
+	
+	@RequestMapping(value="fileAlzip.do", method=RequestMethod.POST)
+	public ResponseEntity<byte[]> alzipDownload(
+			@RequestParam List<String> folderArray, 
+			@RequestParam List<String> fileArray,
+			HttpServletRequest request,
+			HttpServletResponse response) throws IOException {
+		System.out.println("여긴왓음?");
+		String zipFileName = "";
+		System.out.println(folderArray);
+		
+		if(folderArray.size() != 0) {
+			FolderVO alzipName = new FolderVO();
+			alzipName.setFolderCd(folderArray.get(0));
+			alzipName = service.selectMyselfFolder(alzipName);
+			zipFileName = "D:/"+alzipName.getFolderName();
+			System.out.println(zipFileName);
+		} else {
+			FolderFileVO alzipName = new FolderFileVO();
+			alzipName.setFileCd(fileArray.get(0));
+			alzipName = service.selectMyselfFile(alzipName);
+			zipFileName = "D:/"+alzipName.getFileOrgname();
+			System.out.println(zipFileName);
+		}
+		
+		FileOutputStream fos = new FileOutputStream(zipFileName);
+		ZipOutputStream zos = new ZipOutputStream(fos);
+		
+		if(folderArray != null) {
+			for(int i = 0; i < folderArray.size(); i++) {
+				System.out.println(folderArray.get(i));
+				FolderVO folderVO = new FolderVO();
+				folderVO.setFolderCd(folderArray.get(i));
+				folderVO = service.selectMyselfFolder(folderVO);
+				String folderPath = folderVO.getFolderPath();
+				
+				// 폴더패스의 상위폴더를 가져와 zipFolder의 소스폴더로 넣을 경로
+				String sourcePath = "";
+				String[] sourcePathArray = folderPath.split("/");
+				for(int j = 0; j < sourcePathArray.length-1; j ++) {
+					if(j == 0) {
+						sourcePath += sourcePathArray[j];
+					}else {
+						sourcePath += "/"+sourcePathArray[j];
+					}
+				}
+				
+				System.out.println("커런트패스 : "+folderPath);
+				// 전체경로와 현재경로가 같을시 문제점
+				// 1. 경로를 자신을 포함했을때 : 첫폴더는 폴더간 경계가 없어진다.
+				// 2. 경로를 자신을 포함하지 않을때 : 선택하지 않은 상위폴더의 하위폴더들까지 압축됨.
+				// 	> 따라서 전체경로는 상위로, 현재경로는 자신을 포함한 경로로 해볼예정.
+				zipFolder(sourcePath, folderPath, zos);
+			}
+		}
+		
+		if(fileArray != null) {
+			for(int i = 0; i < fileArray.size(); i++) {
+				FolderFileVO folderFileVO = new FolderFileVO();
+				folderFileVO.setFileCd(fileArray.get(i));
+				folderFileVO = service.selectMyselfFile(folderFileVO);
+				String entryName = folderFileVO.getFileOrgname()
+									+"."+folderFileVO.getFileType();
+				ZipEntry ze = new ZipEntry(entryName);
+	            zos.putNextEntry(ze);
+
+	            FileInputStream fis = new FileInputStream(
+	            		request.getServletContext().getRealPath("")+
+						folderFileVO.getFileSavepath()+
+						folderFileVO.getFileSavename());
+	            byte[] buffer = new byte[1024];
+	            int len;
+	            while ((len = fis.read(buffer)) > 0) {
+	                zos.write(buffer, 0, len);
+	            }
+
+	            fis.close();
+			}
+		}
+
+		zos.close();
+		
+		byte[] zipFileContent = Files.readAllBytes(Paths.get(zipFileName));
+	    
+	    HttpHeaders headers = new HttpHeaders();
+	    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+	    headers.setContentDispositionFormData("attachment", "test.zip");
+	    headers.setContentLength(zipFileContent.length);
+	    
+	    return new ResponseEntity<>(zipFileContent, headers, HttpStatus.OK);
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

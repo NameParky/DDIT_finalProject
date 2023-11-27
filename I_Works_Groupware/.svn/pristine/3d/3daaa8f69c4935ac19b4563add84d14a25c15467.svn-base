@@ -1,0 +1,12 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.AssRentVO;
+
+public interface AssetMapper {
+	public List<AssRentVO> selectAssList(AssRentVO assVO);
+	public int insertAsRent(AssRentVO assVO);
+	public List<AssRentVO> myAssRsvList(String empNo);
+	public AssRentVO selectAsRentTodayList(String asCd);
+}

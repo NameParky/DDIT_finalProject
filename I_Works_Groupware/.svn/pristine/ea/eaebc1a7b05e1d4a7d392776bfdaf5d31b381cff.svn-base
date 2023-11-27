@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.FileMapper">
+	
+	
+	<!-- 개인 자료실  -->
+	<!-- 개인자료실 폴더만을 가져오는 쿼리 -->
+	<select id="selectIndFolder" parameterType="folderVO" resultType="folderVO">
+  		  SELECT folder_cd
+  		 , folder_se
+  		 , emp_no
+  		 , folder_name
+  		 , folder_parent
+  		 , folder_delse
+    	FROM folder
+    	WHERE folder_cd = #{folderCd}
+    			AND emp_no = #{empNo} 
+    			AND folder_se = '개인' 
+    			AND folder_delse = 1
+	</select>
+	
+	<!-- 개인자료실 -->
+	<!-- 개인자료실 디폴드폴더 유무를 가져오는 쿼리 -->
+	<select id="selectDefaultIndFolder" parameterType="folderVO" resultType="int">
+		SELECT count(*)
+		FROM folder
+		where folder_cd = #{empNo} 
+			  and folder_name = #{empNo} 
+			  and emp_no = #{empNo}
+	</select>
+	
+	<!-- 개인 자료실 -->
+	<!-- 사원이 회원가입을 했을시, 회원의 자료실을 구성해주는 SQL쿼리 -->
+	<insert id="insertDefaultIndFolder" parameterType="folderVO">
+		INSERT INTO folder (
+  		  folder_cd
+    		, folder_se
+    		, emp_no
+    		, folder_name
+    		, folder_delse
+		) VALUES (
+    		#{empNo}
+  			, '개인'
+  			, #{empNo}
+  			, #{empNo}
+  			, 1
+		)
+	</insert>
+
+	<!-- 개인 자료실 -->
+	<!-- 폴더를 생성해주는 sql쿼리 -->
+	<insert id="insertIndFolder" parameterType="folderVO">
+		
+		INSERT INTO folder (
+   			 folder_cd
+   			 , folder_se
+   			 , emp_no
+   			 , folder_name
+   			 , folder_parent
+   			 , folder_delse
+   			 , folder_path
+		) VALUES (
+    		'ind' || LPAD(INDFILE_SEQ.NEXTVAL, 7, '0')
+    		, '개인'
+    		, #{empNo}
+    		, #{folderName}
+    		, #{folderParent}
+    		, 1
+    		, #{folderPath}
+		)
+
+	</insert>
+	
+	<!-- 개인 자료실 -->
+	<!-- 부모폴더 가져오기 -->
+	<!-- 코드번호가 해당폴더의 '부모폴더'인 폴더를 가져오는 sql쿼리 -->
+	<select id="selectParentFolder" parameterType="folderVO" resultType="folderVO">
+		SELECT folder_cd
+		, folder_se
+		, emp_no
+		, folder_name
+		, folder_parent
+		, folder_delse
+		FROM folder
+		where folder_cd = #{folderParent }
+	</select>
+	
+	<!-- 개인 자료실 -->
+	<!-- 자식폴더 가져오기 -->
+	<!-- 코드번호가 해당폴더의 '부모폴더'인 폴더를 가져오는 sql쿼리 -->
+	<select id="selectChildFolder" parameterType="folderVO" resultType="folderVO">
+		SELECT folder_cd
+		, folder_se
+		, emp_no
+		, folder_name
+		, folder_parent
+		, folder_delse
+		FROM folder
+		where folder_parent = #{folderCd }
+	</select>
+	
+	<!-- 개인자료실 -->
+	<!-- 코드번호를 가지고 해당폴더의 자식파일정보를 가져오는 sql쿼리 -->
+	<select id="selectChildFile" parameterType="folderVO" resultType="folderFileVO">
+		SELECT
+    		fr.file_cd
+  			, fr.file_sec
+	  		, file_orgname
+  			, file_savename
+  			, file_savepath
+  			, file_size
+  			, file_mime
+  			, file_type
+  			, file_downcnt
+  			, file_uploaddt
+  			, file_se
+  			, file_likese
+  			, file_apprse
+  			, emp_no
+		FROM
+    		fileroom fr, folderfile ff
+		where fr.file_cd = ff.file_cd and ff.folder_cd = #{folderCd}
+	</select>
+	
+	
+	<!-- 개인 자료실 -->
+	<!-- 코드번호를 가지고 본인의 폴더정보를 가져오는 sql쿼리 -->
+	<select id="selectMyselfFolder" parameterType="folderVO" resultType="folderVO">
+		SELECT folder_cd
+		, folder_se
+		, emp_no
+		, folder_name
+		, folder_parent
+		, folder_delse
+		, folder_path
+		FROM folder
+		where folder_cd = #{folderCd}
+	</select>
+	
+	<select id="selectMyselfFile" parameterType="folderFileVO" resultType="folderFileVO">
+		SELECT
+    		file_cd
+  			, file_sec
+	  		, file_orgname
+  			, file_savename
+  			, file_savepath
+  			, file_size
+  			, file_mime
+  			, file_type
+  			, file_downcnt
+  			, file_uploaddt
+  			, file_se
+  			, file_likese
+  			, file_apprse
+  			, emp_no
+		FROM
+    		fileroom
+		where file_cd = #{fileCd}
+	</select>
+	
+	
+	<!-- 개인 자료실 -->
+	<!-- 가공된 파일 데이터를 토대로 fileRoom을 인서트 시키는 과정 -->
+	<insert id="insertIndFile" parameterType="folderFileVO">
+		INSERT INTO fileroom (
+    		file_cd
+    		, file_sec
+    		, file_orgname
+    		, file_savename
+    		, file_savepath
+    		, file_size
+    		, file_mime
+    		, file_type
+    		, file_downcnt
+    		, file_uploaddt, 
+    		file_se, file_likese, emp_no
+		) VALUES (
+    		'ind' || LPAD(FOLDERFILE_SEQ.NEXTVAL,8,0)
+    		, #{fileSec}
+    		, #{fileOrgname}
+    		, #{fileSavename}
+    		, #{fileSavepath}
+    		, #{fileSize }
+    		, #{fileMime}
+    		, #{fileType }
+    		, #{fileDowncnt}
+    		, sysdate
+    		, #{fileSe}
+    		, #{fileLikese}
+    		, #{empNo}
+		)
+	</insert>
+	
+	<!-- 개인자료실 -->
+	<!-- insertIndFile 서비스안에서 mapper로 fileFolder 테이블을 인서트 시키는 sql쿼리 -->
+	<insert id="insertFolderFile" parameterType="folderVO">
+		INSERT INTO folderfile (
+    		folder_cd
+    		, file_cd
+    		, file_sec
+		) VALUES (
+			#{folderCd}
+  			, 'ind' || LPAD(FOLDERFILE_SEQ.CURRVAL,8,0)
+  			, #{fileSec}
+		)
+	</insert>
+	
+	
+
+</mapper>

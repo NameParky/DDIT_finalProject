@@ -1,0 +1,89 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>기안 양식폼 관리</title>
+</head>
+<body>
+ <h2>기안 양식폼 관리</h2>
+ 	<br>
+ 	<table class="table table-hover" style=" text-align: center;">
+	  <thead>
+	    <tr>
+	      <th scope="col">	        		
+	      	<input class="form-check-input" id="totalChk" type="checkbox" />
+		  </th>
+	      <th scope="col">번호</th>
+	      <th scope="col">양식명</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr>
+	      <th scope="row">
+			<input class="form-check-input" type="checkbox" name="chk" />
+		  </th>
+	      <th>10</th>
+	      <td><a href=" ">출장보고서</a></td>
+	    </tr>
+	    <tr>
+	      <th scope="row">
+	      	<input class="form-check-input" type="checkbox" name="chk" />
+	      </th>
+	       <th>9</th>
+	      <td><a href=" ">급여명세서</a></td>
+	    </tr>
+	    <tr>
+	      <th scope="row">
+	      	<input class="form-check-input" type="checkbox" name="chk" />
+	      </th>
+	       <th>8</th>
+	      <td><a href=" ">재직증명서</a></td>
+	    </tr>
+	  </tbody>
+	</table> 
+	<br/>
+</body>
+<br>
+<button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" style="float: right;">삭제</button>
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">기안 양식폼 삭제</h5>
+        <button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p class="text-700 lh-lg mb-0">정말 삭제하시겠습니까?</p>
+      </div>
+      <div class="modal-footer">
+      	<button class="btn btn-info" type="button">확인</button>
+      	<button class="btn btn-outline-info" type="button" data-bs-dismiss="modal">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+<button class="btn btn-outline-info me-1 mb-1" type="button" style="float: right;">등록</button>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	/* 체크박스 */
+	$("#totalChk").click(function(){
+		if($("#totalChk").is(":checked")) $("input[name=chk]").prop("checked", true);
+		else $("input[name=chk]").prop("checked", false);
+		
+	});
+
+	$("input[name=chk]").click(function(){
+		var total = $("input[name=chk]").length;
+		var checked = $("input[name=chk]:checked").length;
+		
+		if(total != checked) $("#totalChk").prop("checked", false);
+		else $("#totalChk").prop("checked", true); 
+		
+	});
+
+});
+</script>
+</html>

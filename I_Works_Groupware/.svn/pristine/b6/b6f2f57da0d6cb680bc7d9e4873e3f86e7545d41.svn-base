@@ -1,0 +1,80 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+
+<h2>&nbsp;메일보내기</h2>
+<div class="email-container pt-5">
+	<div class="row g-lg-6 mb-8">
+		<div class="col-12">
+			<div class="card email-content">
+				<div class="card-body">
+					<form class="d-flex flex-column h-100" id="sendMailForm">
+						<div class="row g-3 mb-2">
+						
+							<div class="col-9">
+							<div class="row">
+							<div class="col-12">
+								<div class="d-flex align-items-center mb-1">
+									<span class="me-2 uil uil-user"></span>
+									<h5 class="text-1000 mb-0">보낸사람</h5>
+								</div>
+									<!-- 보낸직원 들어가는 곳 -->
+									<span class="input-group-text" >${rmail.mailsEmpname }</span>
+							</div>
+							<div class="col-12">
+							<div class="d-flex align-items-center mb-1">
+									<span class="me-2 uil uil-user"></span>
+									<h5 class="text-1000 mb-0">제목</h5>
+								</div>
+								<span class="input-group-text" >${rmail.mailTitle }</span>
+							</div>
+							</div>
+							</div>
+							<div class="col-3">
+								<div class="d-flex align-items-center mb-1">
+									<span class="me-2 uil uil-user"></span>
+									<h5 class="text-1000 mb-0">첨부파일</h5>
+									
+									<!-- 파일 포이치 돌리기 -->
+									
+								</div>
+							</div>
+							
+							
+							<div class="col-12"  style="height: 40vh;">
+							<div class="d-flex align-items-start mb-1" >
+									<span class="me-2 uil uil-user"></span>
+									<h5 class="text-1000 mb-0">내용</h5>
+								</div>
+								<span class="input-group-text d-flex" style="height: 35vh;">${rmail.mailContent }</span>
+							</div>
+							<div class="d-flex justify-content-between align-items-center">
+								<div class="d-flex">
+								</div>
+								<div class="d-flex">	
+									<button class="btn btn-primary me-1 mb-1" type="button" id="listBtn">&nbsp;&nbsp;목록&nbsp;&nbsp;</button>
+									<button class="btn btn-primary me-1 mb-1" type="button" id="mailBtn">메일보내기</button>
+									</button>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace('mailContent', {height: 200});
+	
+	 $(document).on('click', '#listBtn', function(){
+	        location.href="/receivedmail.do";
+	    });
+	
+});
+
+
+</script>

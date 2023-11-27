@@ -1,0 +1,22 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+public class SMailVO {
+	private String mailNo;
+	private String mailTitle;
+	private String mailContent;
+	private Date mailDate;
+	private String mailrEmpno;
+	private String mailsEmpno;
+	private String mailFileno;
+}

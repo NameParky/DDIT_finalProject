@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="kr.or.ddit.mapper.NotifyMapper">
+  	
+  	<insert id="insertNotify" parameterType="notifyVO">
+  		insert into notify(
+  			NOTIFY_CD, NOTIFY_CONTENT, NOTIFY_TYPESE, NOTIFY_EMPNO
+  		)values(
+  			NOTI_SEQ.nextval, #{notifyContent}, #{notifyTypese}, #{notifyEmpno}
+  		)
+  	</insert>
+  
+  
+  	<select id="selectNotiList" parameterType="string" resultType="notifyVO">
+  		select  
+  		  notify_cd, notify_content, notify_typese, notify_empno, notify_ckse
+  		from 
+  			notify
+  		where 
+  			notify_typese like '%'||${notifyTypese}||'%'
+  	</select>
+  
+  
+  </mapper>

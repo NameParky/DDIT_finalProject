@@ -1,0 +1,12 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.EmpVO;
+import kr.or.ddit.vo.chatSelectResultVO;
+
+public interface ChatTilesMapper {
+	public List<chatSelectResultVO> selectRoomList(String chatuser);
+	public String selectRecentChat(String chatuser);
+	public List<EmpVO> selectChatUserTiles(String chatuser);
+}

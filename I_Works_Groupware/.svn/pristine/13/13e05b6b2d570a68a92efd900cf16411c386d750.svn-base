@@ -1,0 +1,155 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+
+
+
+	<div class="pb-5">
+		<div class="row g-4">
+			<div class="col-12 col-xxl-6">
+				<div></div>
+			</div>
+
+		</div>
+	</div>
+	<div
+		class="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-white pt-7">
+		<div
+			data-list='{"valueNames":["product","customer","rating","review","time"],"page":6}'>
+
+
+			<div>
+				<div class="container-fluid">
+					<div class="card" style="">
+						<div class="row d-flex justify-content-center text-center pt-7">
+							<div class="col-4"></div>
+							<div class="col-4">
+								<h3>자유게시판 첫 게시글입니다</h3>
+							</div>
+							<div class="col-1"></div>
+							<div class="col-1 pt-4">
+								<div style="border:solid 1px;">추천들어갈곳</div>
+							</div>
+							<div class="col-2"></div>
+						</div>
+						
+						<div class="row text-center pb-5">
+							<div class="col-4"></div>
+							<div class="col-4">
+								<h6 class="fw-normal">아이들 / 2023-01-21</h6>
+							</div>
+							<div class="col-4"></div>
+						</div>
+						
+						<div class="row">
+							<div class="col-12">
+								<hr/>
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="col-1"></div>
+							<div class="col-6 pt-15">
+								<p>
+									자유게시판입니다.<p>
+									이제는 뭘써야 할지도 모르겠고 자유게시판이니까<p>
+									짧게쓸게요.
+								</p>
+							</div>
+							<div class="col-4">
+								<div class="row">
+									<div class="col-12 pb-7">
+										<h6 class="fw-normal text-end">첨부파일 : <a href="#">공지사항 첨부파일.png</a></h6>
+									</div>
+									<div class="col-12 d-flex justify-content-end">
+										<img src="${pageContext.request.contextPath }/resources/assets/img/team/40x40/30.webp" style="width:100%; height:100%;">
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="col-12">
+								<hr/>
+							</div>
+						</div>
+						
+						<!-- 댓글 포문 돌릴 곳 -->
+						<div class="row pb-2">
+							<div class="col-1 d-flex justify-content-end">
+								<img class="rounded-circle" src="${pageContext.request.contextPath }/resources/assets/img/team/40x40/30.webp" style="width:40px; height:40px;">
+							</div>
+							<div class="col-1 pt-3">
+								<h5 class="">작성자</h5>
+							</div>
+							<div class="col-9 pt-3">
+								<h5 class="fw-normal">
+									댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1댓글1
+									<!-- 댓글작성자만 보이는 x버튼 -->
+									<span class="uil uil-times fs-1 px-2 text-danger" style="cursor:pointer"></span>
+								</h5>
+							</div>
+						</div>
+						<!-- 댓글포문 끝 -->
+						
+						
+						<div class="row">
+							<div class="col-12">
+								<hr/>
+							</div>
+						</div>
+						
+						
+						
+						<div class="row pb-3">
+							<div class="col-1 d-flex justify-content-end">
+								<img class="rounded-circle" src="${pageContext.request.contextPath }/resources/assets/img/team/40x40/23.webp" style="width:40px; height:40px;">
+							</div>
+							<div class="col-10">
+								<input class="form-control form-control" id="sizingInput" type="text" placeholder="댓글을 입력해주세요." />
+							</div>
+							<div class="col-1">
+								<button class="btn btn-outline-secondary me-1 mb-1" type="button">작성</button>
+							</div>
+						</div>
+						
+
+						
+					</div>
+				</div>
+
+
+			</div>
+			<div class="row align-items-center py-1">
+				<div class="pagination d-none"></div>
+				<div class="col d-flex fs--1">
+					<!-- 하단부 -->
+
+				</div>
+			</div>
+			<div class="row" style="margin: 15px 0px 20px 0px;">
+				<div class="col-9"></div>
+				<div class="col-3 text-end">
+					<!-- 작성자일떄 -->
+					<button class="btn btn-primary me-1 mb-1" type="button">수정</button>
+					<button class="btn btn-primary me-1 mb-1" type="button">삭제</button>
+					<!-- 작성자일떄 끝 -->
+					<button class="btn btn-primary me-1 mb-1" type="button" id="listBtn">목록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace('exampleTextarea'
+            , {height: 500                                                  
+            });
+	
+	var listBtn = $("#listBtn");
+	
+	listBtn.on('click', function(){
+		location.href="/freemain.do";
+	});
+});
+</script>

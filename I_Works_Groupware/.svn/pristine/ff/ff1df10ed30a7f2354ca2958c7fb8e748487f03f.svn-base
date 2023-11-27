@@ -1,0 +1,19 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.AssRentVO;
+
+public interface IAssetService {
+	public List<AssRentVO> selectAssList(AssRentVO assVO);
+	public ServiceResult insertAsRent(AssRentVO assVO);
+	
+	public AssRentVO selectAsRentTodayList(String asCd);
+
+	// 나의 예약 목록
+	public List<AssRentVO> myAssRsvList(String empNo);
+	
+	//관리자쪽 자산 예약 
+	public List<AssRentVO> selectRentList(String asCd);
+}

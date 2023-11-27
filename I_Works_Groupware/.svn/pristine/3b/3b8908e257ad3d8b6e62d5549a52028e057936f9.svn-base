@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.FreeseatMapper">
+
+	<select id="selectReservedSeat" resultType="seatResVO">
+		SELECT
+		    sr_cd
+		  , off_cd
+		  , s_no
+		  , sr_date
+		  , emp_no
+		FROM
+		    seatres
+		WHERE
+		    to_char(sr_date,'yyyy-MM-dd') = to_char(sysdate,'yyyy-MM-dd')
+	</select>
+	
+	<select id="chkMyFreeseat" parameterType="string" resultType="seatResVO">
+		SELECT
+		    sr_cd
+		  , off_cd
+		  , s_no
+		  , sr_date
+		  , emp_no
+		FROM
+		    seatres
+		WHERE
+		    to_char(sr_date,'yyyy-MM-dd') = to_char(sysdate,'yyyy-MM-dd')
+		    and emp_no = #{empNo}
+	</select>
+	
+	<select id="chkNowFreeseat" parameterType="seatResVO" resultType="seatResVO">
+		SELECT
+		    sr_cd
+		  , off_cd
+		  , s_no
+		  , sr_date
+		  , emp_no
+		FROM
+		    seatres
+		WHERE
+		    to_char(sr_date,'yyyy-MM-dd') = to_char(sysdate,'yyyy-MM-dd')
+		    and off_cd = #{offCd}
+		    and s_no = #{sNo}
+	</select>
+	
+	<insert id="insertRsvFreeseat" parameterType="seatResVO">
+		INSERT INTO seatres (
+		    sr_cd
+		    , off_cd
+		    , s_no
+		    , sr_date
+		    , emp_no
+		) VALUES (
+		    (SELECT NVL(MAX(TO_NUMBER(sr_cd)),1000)+1 FROM seatres)
+		  , #{offCd}
+		  , #{sNo}
+		  , sysdate
+		  , #{empNo}
+		)
+	</insert>
+	
+</mapper>

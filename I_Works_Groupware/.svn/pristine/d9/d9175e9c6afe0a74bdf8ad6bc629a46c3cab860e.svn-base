@@ -1,0 +1,14 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.TodoListVO;
+
+public interface ITodoService {
+
+	public ServiceResult registerTodo(TodoListVO todoListVO);
+
+	public List<TodoListVO> selectTodoList(String empNo);
+
+}

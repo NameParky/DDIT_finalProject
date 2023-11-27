@@ -1,0 +1,22 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.BoardFreeVO;
+
+public interface FreeMapper {
+	// 자유게시판 조회
+	public List<BoardFreeVO> freeList();
+	// 글쓴이 사번으로 이름 조회
+	public String selectUserName(String empNo);
+	// 자유게시판 글 등록
+	public void insertFree(BoardFreeVO free);
+	// 조회수 증가
+	public void incrementHit(String frNo);
+	// 자유게시판 글 조회
+	public BoardFreeVO selectFree(String frNo);
+	// 게시글 수정
+	public int updateFree(BoardFreeVO freeVO);
+	// 게시글 삭제
+	public int deleteFree(String frNo);
+}

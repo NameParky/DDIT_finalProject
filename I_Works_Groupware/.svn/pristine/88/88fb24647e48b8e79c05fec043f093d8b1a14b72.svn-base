@@ -1,0 +1,22 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.vo.TodoListVO;
+
+public interface ITodoService {
+
+	public ServiceResult registerTodo(TodoListVO todoListVO);
+
+	public List<TodoListVO> selectTodoList(String empNo);
+
+	public ServiceResult updateTodo(TodoListVO todoListVO);
+
+	public ServiceResult updateTodoCheckse(Map<String, String> map);
+
+	public ServiceResult deleteTodoList(TodoListVO todoListVO);
+
+
+}

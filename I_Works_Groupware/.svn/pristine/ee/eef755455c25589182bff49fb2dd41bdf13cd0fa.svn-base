@@ -1,0 +1,99 @@
+package kr.or.ddit.controller.chat;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.socket.TextMessage;
+
+import kr.or.ddit.security.CustomUser;
+import kr.or.ddit.service.IChatService;
+import kr.or.ddit.vo.ChatRoomDTLVO;
+import kr.or.ddit.vo.ChatVO;
+import kr.or.ddit.vo.chatSelectResultVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class ChatController {
+
+	@Inject
+	private IChatService service;
+	
+	@RequestMapping(value="/chatMain.do", method=RequestMethod.GET)
+	public String ChatMain() {
+		return "main/chat/chatMain";
+	}
+	
+	@RequestMapping(value = "/selectChatRoom", method = RequestMethod.GET)
+	public String selectChatRoom(Model model, Principal principal) {
+		log.info("selectChat() 실행....!");
+		CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String chatuser = user.getEmp().getEmpNo();
+		List<chatSelectResultVO> chatlist = service.selectChatRoom(chatuser);
+		model.addAttribute("chatlist", chatlist);
+		log.info("room : " + chatlist);
+		return "main/chat/chatMain";
+	}
+	
+	@RequestMapping(value = "/selectChatUser", method = RequestMethod.GET)
+	public String selectChatUser(Model model, Principal principal) {
+		log.info("selectChatUser() 실행...!");
+		CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String chatuser = user.getEmp().getEmpNo();
+		List<chatSelectResultVO> chatlist = service.selectChatUser(chatuser);
+		model.addAttribute("chatlist", chatlist);
+		log.info("user : " + chatlist);
+		return "main/chat/chatMain";
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = "/selectRoomDetail", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+	public ResponseEntity<List<ChatRoomDTLVO>> selectRoomDetail(@RequestBody Map<String, String> requestBody){
+		log.info("selectRoomDetail() 실행....!");
+
+	    String crNo = requestBody.get("crNo");
+	    
+	    ChatVO chat = new ChatVO();
+	    chat.setCrNo(crNo);
+	    
+	    // 채팅방 상세보기 
+	    log.info("crNo: " + crNo);
+	    List<ChatRoomDTLVO> chatRoomDtlList = service.selectRoomDetail(chat);
+	    log.info("chasender_EMPNO: " + chat.getChasenderEmpno());
+
+	    if (chatRoomDtlList != null && !chatRoomDtlList.isEmpty()) {
+	        // 성공했을 때
+	        return new ResponseEntity<>(chatRoomDtlList, HttpStatus.OK);
+	    } else {
+	        // 실패하면 404
+	        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	    }
+	}
+	
+//	@ResponseBody
+//	@RequestMapping(value = "/insertChat", method = RequestMethod.POST)
+//	public ResponseEntity<String> insertChat(@RequestParam("chatMsg") String chatMsg) {
+//		log.info("insertChat() 실행...!");
+//		log.info("chatMsg : " + chatMsg);
+//		// 채팅 저장기능을 요청
+//		service.insertChatting(chatMsg);
+//		return ResponseEntity.ok("메세지 전송 성공");
+//	}
+	
+}

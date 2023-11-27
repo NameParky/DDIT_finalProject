@@ -1,0 +1,178 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+
+
+	<div class="pb-5">
+		<div class="row g-4">
+			<div class="col-12 col-xxl-6">
+				<div></div>
+			</div>
+
+		</div>
+	</div>
+	<div
+		class="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-white pt-7 border-y border-300">
+		<div
+			data-list='{"valueNames":["product","customer","rating","review","time"],"page":6}'>
+			<div class="row align-items-end justify-content-between pb-5 g-3">
+				<div class="col-auto">
+					<h3>공지사항</h3>
+					<p class="text-700 lh-sm mb-0">
+					<h5 style="font-weight: normal;">
+						어쭈구저쭈구 공지사항 게시판입니다.
+						<h5>
+							</p>
+				</div>
+				<div class="col-12 col-md-auto">
+					<div class="row g-2 gy-3">
+						<div class="col-auto flex-1">
+							<div class="search-box">
+								<form class="position-relative" data-bs-toggle="search"
+									data-bs-display="static">
+									<!-- 검색 위치 -->
+									<input class="form-control search-input search form-control-sm"
+										type="search" placeholder="Search" aria-label="Search" /> <span
+										class="fas fa-search search-box-icon"></span>
+
+								</form>
+							</div>
+						</div>
+						<div class="col-auto">
+							<button
+								class="btn btn-sm btn-phoenix-secondary bg-white hover-bg-100 me-2"
+								type="button">검색</button>
+							<ul class="dropdown-menu dropdown-menu-end">
+								<li><a class="dropdown-item" href="#">Action</a></li>
+								<li><a class="dropdown-item" href="#">Another action</a></li>
+								<li><a class="dropdown-item" href="#">Something else
+										here</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+			<div>
+
+
+				<div class="row">
+					<hr />
+					<div class="col-1 text-center" style="padding: 8px 8px 16px 16px;">
+						<h5 style="font-weight: bold;">번호</h5>
+					</div>
+					<div class="col-8 text-center" style="padding: 8px 8px 16px 16px;">
+						<h5 style="font-weight: bold;">제목</h5>
+					</div>
+					<div class="col-1 text-center" style="padding: 8px 8px 16px 16px;">
+						<h5 style="font-weight: bold;">게시일</h5>
+					</div>
+					<div class="col-1 text-center" style="padding: 8px 8px 16px 16px;">
+						<h5 style="font-weight: bold;">작성자</h5>
+					</div>
+					<div class="col-1 text-center" style="padding: 8px 8px 16px 16px;">
+						<h5 style="font-weight: bold;">조회수</h5>
+					</div>
+				</div>
+
+				<!-- 게시물이 존재하지 않을때 -->
+				<!--
+			  <div class="row">
+				<hr/>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-4 text-center" style="padding:0px 0px 15px 8px;">
+					<img src="C:\Users\PC04\Desktop\스프링2\0831\이미지\jpg\오랑우탄.jpg" width="100%" height="auto" alt=""/>
+				</div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+				<div class="col-1 text-center" style="padding:0px 0px 15px 8px;"></div>
+			  </div>
+			  -->
+
+
+				<!-- 포문돌리기 용도 -->
+				<div class="row d-flex justify-content-center" style="cursor:pointer" id="rowId">
+					<hr />
+					<div class="col-1 text-center" style="padding: 0px 0px 15px 8px;">
+						<h6>
+							1
+							</h6>
+					</div>
+					<div class="col-8 text-center" style="padding: 0px 0px 15px 8px;">
+						<h6>
+							[공지] 공지입니다.
+							</h6>
+					</div>
+					<div class="col-1 text-center" style="padding: 0px 0px 15px 8px;">
+						<h6>
+							2023.09.26
+							</h6>
+					</div>
+					<div class="col-1 text-center" style="padding: 0px 0px 15px 8px;">
+						<h6>
+							관리자
+							</h6>
+					</div>
+					<div class="col-1 text-center" style="padding: 0px 0px 15px 8px;">
+						<h6>
+							31
+							</h5>
+					</div>
+				</div>
+				<!-- 포문 끝 -->
+
+				<div class="row">
+					<hr />
+				</div>
+
+				<div class="row">
+					<div class="col-1"></div>
+				</div>
+
+
+				<script>
+				$(function(){
+					$(".list").on("click",function(){
+						console.log($('this').val());
+					});
+				});
+			</script>
+
+
+
+			</div>
+			<div class="row align-items-center py-1">
+				<div class="pagination d-none"></div>
+				<div class="col d-flex fs--1">
+					<!-- 하단부 -->	
+
+				</div>
+			</div>
+			<div class="row" style="margin: 0px 0px 20px 0px;">
+				<div class="col-9"></div>
+				<div class="col-3 text-end">
+					<button class="btn btn-primary me-1 mb-1" type="button" id="resBtn">작성하기</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+<script type="text/javascript">
+$(function(){
+	var resBtn = $('#resBtn');
+	var rowId = $('#rowId');
+	
+	rowId.on('click', function(){
+		location.href="/noticedetail.do";
+	});
+	
+	resBtn.on('click', function(){
+		location.href="/noticewrite.do";
+	});
+});
+</script>

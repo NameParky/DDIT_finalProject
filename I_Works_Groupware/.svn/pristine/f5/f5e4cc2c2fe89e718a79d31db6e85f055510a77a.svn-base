@@ -1,0 +1,18 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="/resources/ckeditor/ckeditor.js"></script>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	
+		<%-- <textarea cols="3" rows="5" name="content" readonly>${atrzf}</textarea> --%>
+		${atrzf.atrzfContent } 
+<script type="text/javascript">
+/* CKEDITOR.replace("content"); */
+</script>
+</body>
+</html>

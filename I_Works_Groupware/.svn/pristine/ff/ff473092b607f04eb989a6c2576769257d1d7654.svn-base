@@ -1,0 +1,599 @@
+package kr.or.ddit.service.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
+
+import kr.or.ddit.mapper.AttendMapper;
+import kr.or.ddit.service.IAttendService;
+import kr.or.ddit.vo.AtStatusVO;
+import kr.or.ddit.vo.AttendVO;
+import kr.or.ddit.vo.AyannVO;
+import kr.or.ddit.vo.EmpVO;
+
+@Service
+public class AttendServiceImpl implements IAttendService{
+	
+	@Inject
+	private AttendMapper mapper;
+	
+	/**
+	 * 근무상태생성
+	 * 계정 생성시 근무상태를 기본 '퇴근'으로 생성해주는 로직.
+	 */
+	@Override
+	public void insertAttendStatus(AttendVO attend) {
+		mapper.insertAttendStatus(attend);
+	}
+	
+	/**
+	 * 근태생성
+	 * 계정생성시 근태상태를 하나 설정해놓는 로직
+	 */
+	@Override
+	public void insertDefaultAttend(EmpVO empNo) {
+		int thisWeek = mapper.selectTodayWeek();
+		AttendVO attendVO = new AttendVO();
+		attendVO.setEmpNo(empNo.getEmpNo());
+		attendVO.setAtWeek(thisWeek);
+		System.out.println("기본근무상태입력대기");
+		mapper.insertDefaultAttend(attendVO);
+		System.out.println("기본 근태입력완료");
+		mapper.insertAttendStatus(attendVO);
+		System.out.println("기본 근무상태입력완료");
+	}
+	
+	
+	/**
+	 * 근무상태셀렉트
+	 * 가장 빠른 근태의 상태를 셀렉트하는 로직.
+	 * 내일날짜를 확인하여 인서트 or 업데이트로 나누어로직을 수행하게한다.
+	 */
+	@Override
+	public int selectMaxRecentAttend(String empNo) {
+		int maxAttend = mapper.selectMaxRecentAttend(empNo);
+		return maxAttend;
+	}
+	
+	/**
+	 * 근태생성(근무유형 루트)
+	 * 근무유형을 변경했을때 바뀐 근무유형으로
+	 * 익일 근태 테이블을 미리 생성해주는 로직.
+	 */
+	@Override
+	public void insertStartAttendC(AttendVO attendVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+
+				
+		int maxAttend = mapper.selectMaxRecentAttend(empNo);
+		System.out.println(maxAttend);
+		
+		LocalDate date = LocalDate.now().plusDays(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        int tmr = Integer.valueOf(date.format(formatter));
+        Date tmrDate = java.sql.Date.valueOf(date);
+        
+        System.out.println(tmrDate);
+		
+		if(maxAttend!=tmr) {
+			System.out.println("근태 인서트");
+			mapper.insertStartAttendC(attendVO);
+		}else {
+			System.out.println("근태 업데이트");
+			attendVO.setAtDate(tmrDate);
+			mapper.updateStartAttendC(attendVO);
+		}
+	}
+	
+	/**
+	 * 근태수정(근무유형 루트)
+	 * 근무유형을 변경했을때 바뀐 근무유형으로 익일 근태테이블을 미리 수정해주는 로직
+	 */
+	@Override
+	public void updateStartAttendC(AttendVO attendVO) {
+		mapper.updateStartAttendC(attendVO);
+	}
+
+	/**
+	 * 근태생성(정상루트)
+	 * 출근을 찍었을때 근태테이블을 추가해주는 로직.
+	 * @throws ParseException 
+	 */
+	@Override
+	public String insertStartAttend(AttendVO attendVO) throws ParseException {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		int weeks = mapper.selectTodayWeek();
+		
+		attendVO.setEmpNo(empNo);
+		attendVO.setAtWeek(weeks);
+		
+		
+		Calendar calendar = Calendar.getInstance();
+        
+        // 오늘 날짜로 설정
+        Date today = calendar.getTime();
+        
+        // 시간을 설정하려면 Calendar 객체를 사용하여 원하는 시간을 설정
+        calendar.set(Calendar.HOUR_OF_DAY, 8); // 08:00로 설정
+        calendar.set(Calendar.MINUTE, 0);
+        Date basicStart = calendar.getTime();
+        
+        calendar.set(Calendar.HOUR_OF_DAY, 7); // 07:00로 설정
+        calendar.set(Calendar.MINUTE, 0);
+        Date yuyeonAStart = calendar.getTime();
+		       
+        calendar.set(Calendar.HOUR_OF_DAY, 9); // 07:00로 설정
+        calendar.set(Calendar.MINUTE, 0);
+        Date yuyeonBStart = calendar.getTime();
+        
+        calendar.set(Calendar.HOUR_OF_DAY, 17); // 17:00로 설정
+        calendar.set(Calendar.MINUTE, 0);
+        Date basicEnd = calendar.getTime();
+        
+        calendar.set(Calendar.HOUR_OF_DAY, 16); // 16:00로 설정
+        calendar.set(Calendar.MINUTE, 0);
+        Date yuyeonAEnd = calendar.getTime();
+        
+        calendar.set(Calendar.HOUR_OF_DAY, 18); // 18:00로 설정
+        calendar.set(Calendar.MINUTE, 0);
+        Date yuyeonBEnd = calendar.getTime();
+       
+		
+		if(attendVO.getAtResult().equals("출근")) {
+			AttendVO ystdayAttend = new AttendVO();
+
+			int cnt = mapper.selectTodayAttendCount(attendVO);
+
+			if(cnt==0) {
+				ystdayAttend = mapper.selectRecentAttend(attendVO);
+				attendVO.setAtType(ystdayAttend.getAtType());
+				mapper.insertStartAttend(attendVO);
+				AttendVO checkdStartAttend = mapper.selectTodayAttend(attendVO);
+				
+				if(checkdStartAttend.getAtType().equals("기본")) {
+					if(checkdStartAttend.getAtStart().after(basicStart)) {
+						checkdStartAttend.setAtResult("지각");
+						mapper.updateStartAttend(checkdStartAttend);
+					}
+				} else if(checkdStartAttend.getAtType().equals("유연A")) {
+					if(checkdStartAttend.getAtStart().after(yuyeonAStart)) {
+						checkdStartAttend.setAtResult("지각");
+						mapper.updateStartAttend(checkdStartAttend);
+					}
+				} else if(checkdStartAttend.getAtType().equals("유연B")) {
+					if(checkdStartAttend.getAtStart().after(yuyeonBStart)) {
+						checkdStartAttend.setAtResult("지각");
+						mapper.updateStartAttend(checkdStartAttend);
+					}
+				}
+				
+			}else {
+				ystdayAttend = mapper.selectRecentAttend(attendVO);
+				if(ystdayAttend.getAtStart()!=null) {
+					String message = "이미 출근 등록을 하였습니다.";
+					return message;
+				}else {
+					attendVO.setAtResult("정상출근");
+					mapper.updateStartAttend(attendVO);
+					
+					AttendVO checkdStartAttend = mapper.selectTodayAttend(attendVO);
+					
+					if(checkdStartAttend.getAtType().equals("기본")) {
+						if(checkdStartAttend.getAtStart().after(basicStart)) {
+							checkdStartAttend.setAtResult("지각");
+							mapper.updateStartAttend(checkdStartAttend);
+						}
+					} else if(checkdStartAttend.getAtType().equals("유연A")) {
+						if(checkdStartAttend.getAtStart().after(yuyeonAStart)) {
+							checkdStartAttend.setAtResult("지각");
+							mapper.updateStartAttend(checkdStartAttend);
+						}
+					} else if(checkdStartAttend.getAtType().equals("유연B")) {
+						if(checkdStartAttend.getAtStart().after(yuyeonBStart)) {
+							checkdStartAttend.setAtResult("지각");
+							mapper.updateStartAttend(checkdStartAttend);
+						}
+					}
+				}
+			}
+		}
+		if(attendVO.getAtResult().equals("퇴근")) {
+			
+			attendVO.setAtResult("정상퇴근");
+			
+			mapper.updateEndAttend(attendVO);
+		    
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:MM");
+		    AttendVO checkedEndAttend = mapper.selectTodayAttend(attendVO);
+		    
+		    if(checkedEndAttend.getAtType().equals("기본")) {
+		    	System.out.println("여기 들어왔읍니다.");
+		    	System.out.println("끝낸시간 : "+checkedEndAttend.getAtEnd());
+		    	System.out.println("끝나야할 시간 : "+basicEnd);
+		    	if(checkedEndAttend.getAtEnd().before(basicEnd)) {
+		    		checkedEndAttend.setAtResult("조퇴");
+		    		checkedEndAttend.setAtOvertime(0);
+		    		mapper.updateEndAttend(checkedEndAttend);
+		    	} else {
+		    		String endAttendString = sdf.format(checkedEndAttend.getAtEnd());
+		    		String basicEndString = sdf.format(basicEnd);
+		    		Date endAttendDate = sdf.parse(endAttendString);
+		    		Date basicDate = sdf.parse(basicEndString);
+		    		
+		    		long overTimeLong = (endAttendDate.getTime()-basicDate.getTime()) / 3600000;
+		    		
+		    		int overTime = (int)overTimeLong;
+		    		
+		    		checkedEndAttend.setAtOvertime(overTime);
+		    		
+		    	}
+		    } else if (checkedEndAttend.getAtType().equals("유연A")) {
+		    	if(checkedEndAttend.getAtEnd().before(yuyeonAEnd)) {
+		    		checkedEndAttend.setAtResult("조퇴");
+		    		checkedEndAttend.setAtOvertime(0);
+		    		mapper.updateEndAttend(checkedEndAttend);
+		    	} else {
+		    		String endAttendString = sdf.format(checkedEndAttend.getAtEnd());
+		    		String yuyeonAEndString = sdf.format(yuyeonAEnd);
+		    		Date endAttendDate = sdf.parse(endAttendString);
+		    		Date basicDate = sdf.parse(yuyeonAEndString);
+		    		
+		    		long overTimeLong = (endAttendDate.getTime()-basicDate.getTime()) / 3600000;
+		    		
+		    		int overTime = (int)overTimeLong;
+		    		
+		    		checkedEndAttend.setAtOvertime(overTime);
+		    		
+		    	}
+		    } else if (checkedEndAttend.getAtType().equals("유연B")) {
+		    	if(checkedEndAttend.getAtEnd().before(yuyeonBEnd)) {
+		    		checkedEndAttend.setAtResult("조퇴");
+		    		checkedEndAttend.setAtOvertime(0);
+		    		mapper.updateEndAttend(checkedEndAttend);
+		    	} else {
+		    		String endAttendString = sdf.format(checkedEndAttend.getAtEnd());
+		    		String yuyeonBEndString = sdf.format(yuyeonBEnd);
+		    		Date endAttendDate = sdf.parse(endAttendString);
+		    		Date basicDate = sdf.parse(yuyeonBEndString);
+		    		
+		    		long overTimeLong = (endAttendDate.getTime()-basicDate.getTime()) / 3600000;
+		    		
+		    		int overTime = (int)overTimeLong;
+		    		
+		    		checkedEndAttend.setAtOvertime(overTime);
+		    	}
+		    	
+		    } else if (checkedEndAttend.getAtType().equals("재택")) {
+
+		    	String start = sdf.format(checkedEndAttend.getAtStart());
+		    	String end = sdf.format(checkedEndAttend.getAtEnd());
+		    	Date startTime = sdf.parse(start);
+		    	Date endTime = sdf.parse(end);
+		    	// 1시간 단위로 분쇄
+		    	long diffAttend = (endTime.getTime() - startTime.getTime()) / 3600000;
+		    	System.out.println("시간차이... : "+diffAttend);
+		    	
+		    	if(diffAttend < 8) {
+		    		checkedEndAttend.setAtResult("근무시간미달");
+		    		checkedEndAttend.setAtOvertime(0);
+		    		mapper.updateEndAttend(checkedEndAttend);
+		    		
+		    	} else {
+		    		String endAttendString = sdf.format(checkedEndAttend.getAtEnd());
+		    		String startAttendString = sdf.format(checkedEndAttend.getAtStart());
+		    		Date endAttendDate = sdf.parse(endAttendString);
+		    		Date startAttendDate = sdf.parse(startAttendString);
+		    		
+		    		long overTimeLong = (endAttendDate.getTime()-startAttendDate.getTime()-(3600000*9)) / 3600000;
+		    		
+		    		System.out.println(overTimeLong);
+		    	
+		    		int overTime = (int)overTimeLong;
+		    		
+		    		if(overTime < 1) {
+		    		checkedEndAttend.setAtOvertime(overTime);
+		    		} else {
+		    			checkedEndAttend.setAtOvertime(0);
+		    		}
+		    		mapper.updateEndAttend(checkedEndAttend);
+		    	}
+		    	
+		    }
+		    
+		}
+		return null;
+	}
+
+	/**
+	 * 근태출근수정(근무유형 루트)
+	 * 근무유형 변경으로 근태테이블이 미리 생성되었을 때
+	 * 인서트대신 수행할 업데이트 로직.
+	 */
+	@Override
+	public void updateStartAttend(AttendVO attendVO) {		
+		mapper.updateStartAttend(attendVO);
+	}
+	
+	/**
+	 * 근태퇴근수정(정상루트)
+	 * 퇴근시 오늘의 근태를 업데이트 시킬 로직.
+	 */
+	@Override
+	public void updateEndAttend(AttendVO attendVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+		
+		mapper.updateEndAttend(attendVO);
+	}
+
+
+	@Override
+	public AttendVO selectRecentAttend(AttendVO attendVO) {
+		AttendVO recentAttend = new AttendVO();
+		recentAttend = mapper.selectRecentAttend(attendVO);
+		return recentAttend;
+	}
+
+
+	@Override
+	public int selectTodayAttendCount(AttendVO attendVO) {
+		return mapper.selectTodayAttendCount(attendVO);
+	}
+
+
+	@Override
+	public AttendVO selectTodayAttend(AttendVO attendVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+		
+		return mapper.selectTodayAttend(attendVO);
+	}
+	
+	public int selectTodayWeek() {
+		int weeks = mapper.selectTodayWeek();
+		return weeks;
+	}
+
+
+	@Override
+	public List<AttendVO> selectThisWeekAttend(AttendVO attendVO) {
+		System.out.println("셀렉트디스위크어텐트 실행");
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();		
+		
+		int thisWeek = mapper.selectTodayWeek();
+
+		AttendVO attendWeek = new AttendVO();
+		attendWeek.setEmpNo(empNo);
+		attendWeek.setAtWeek(thisWeek);
+		
+		System.out.println("디스위크어텐트 사원번호 : "+empNo);
+		System.out.println("디스위크어텐트 주 번호 : "+thisWeek);
+		
+		return mapper.selectThisWeekAttend(attendWeek);
+	}
+
+
+	@Override
+	public AttendVO sumThisWeekList(List<AttendVO> attendList) throws ParseException {
+		System.out.println("썸디스위크리스트 실행 ...");
+		
+		int sumAttend = 0;
+		int sumOvertime = 0;
+		
+		AttendVO sumAttendVO = new AttendVO();
+		
+		for (AttendVO attendVO : attendList) {
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:MM");
+			String start = sdf.format(attendVO.getAtStart());
+			if(attendVO.getAtEnd()!=null) {
+				String end = sdf.format(attendVO.getAtEnd());
+				Date startTime = sdf.parse(start);
+				Date endTime = sdf.parse(end);
+			
+				long diffAttend = endTime.getTime() - startTime.getTime();
+				String diffAttnedHour = String.valueOf(diffAttend/3600000);
+				int diffAttendHourInt = Integer.parseInt(diffAttnedHour);
+				System.out.println("시간차이 ... : "+diffAttendHourInt);
+				
+				sumOvertime += attendVO.getAtOvertime();
+				sumAttend += diffAttendHourInt;
+				System.out.println(sumAttend+"/"+diffAttendHourInt);
+			}
+			
+		}
+		int overallTime = sumAttend+sumOvertime;
+		
+		System.out.println("근무총합시간 : "+sumAttend);
+		System.out.println("총합연장근무시간 : "+sumOvertime);
+		System.out.println("근무천체총합시간"+overallTime);
+		
+		sumAttendVO.setAtSum(sumAttend);
+		sumAttendVO.setAtOverSum(sumOvertime);
+		sumAttendVO.setOverallSum(overallTime);
+		
+		return sumAttendVO;
+	}
+
+
+	@Override
+	public List<AttendVO> selectMonthExist(AttendVO attendVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+		
+		return mapper.selectMonthExist(attendVO);
+	}
+
+
+	@Override
+	public List<AttendVO> selectMonthAttend(AttendVO attendVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+		
+		return mapper.selectMonthAttend(attendVO);
+	}
+
+
+	@Override
+	public List<AttendVO> selectWeek(AttendVO attendVO) {	
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+		
+		return mapper.selectWeek(attendVO);
+	}
+
+
+	@Override
+	public List<AttendVO> selectWeekAttend(AttendVO attendVO) {
+
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		attendVO.setEmpNo(empNo);
+		
+		return mapper.selectWeekAttend(attendVO);
+	}
+	
+	@Override
+	public AttendVO selectAttendPercent(AttendVO getAttendPercent) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		getAttendPercent.setEmpNo(empNo);
+		
+		return mapper.selectAttendPercent(getAttendPercent);
+	}
+
+
+	@Override
+	public AtStatusVO selectAttendStatus(AtStatusVO atStatusVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		atStatusVO.setEmpNo(empNo);
+		
+		return mapper.selectAttendStatus(atStatusVO);
+	}
+
+
+	@Override
+	public void updateAttendStatus(AtStatusVO atStatusVO) {
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		atStatusVO.setEmpNo(empNo);
+		
+		mapper.updateAttendStatus(atStatusVO);
+	}
+
+
+	@Override
+	public List<AyannVO> selectAyannList(AyannVO ayannVO) {
+
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		ayannVO.setEmpNo(empNo);
+		
+		return mapper.selectAyannList(ayannVO);
+	}
+
+
+	@Override
+	public AyannVO selectThisYearAyann(AyannVO ayannVO) {
+
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		
+		ayannVO.setEmpNo(empNo);
+		
+		return mapper.selectThisYearAyann(ayannVO);
+	}
+
+	@Override
+	public int getPercent(AttendVO getAttendPercent) {
+		Double diffH = Double.parseDouble(getAttendPercent.getDiffHour());
+		Double diffM = Double.parseDouble(getAttendPercent.getDiffMinute());
+		
+		if(diffM < 0) {
+			diffH = diffH-1;
+			diffM = 60-diffM;
+		}
+		
+		Double diff = diffH*60+diffM;
+		System.out.println("디프 시간 : "+diff);
+		Double allTime = (double) (9*60);
+		System.out.println("총시간 : "+allTime);
+		
+		Double diffMinuteDouble = (diff/allTime)*100;
+		System.out.println("퍼센트퍼센트 :: "+diffMinuteDouble);
+		
+		int diffMinute = (int) Math.round(diffMinuteDouble);
+		System.out.println("퍼센트 퍼센트 : "+diffMinute);
+		
+		return diffMinute;
+	}
+
+	
+
+
+	
+
+
+
+
+
+
+}

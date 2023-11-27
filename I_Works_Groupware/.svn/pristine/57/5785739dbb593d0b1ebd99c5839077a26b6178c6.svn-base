@@ -1,0 +1,103 @@
+package kr.or.ddit.controller.main;
+
+import java.security.Principal;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import kr.or.ddit.service.IAttendService;
+import kr.or.ddit.service.IPortletService;
+import kr.or.ddit.vo.AtStatusVO;
+import kr.or.ddit.vo.AttendVO;
+import kr.or.ddit.vo.PortletVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class MainController {
+
+	@Inject
+	private IPortletService portletService;
+	
+	@Inject
+	private IAttendService attendService;
+	
+//	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+//	@RequestMapping(value="/", method = RequestMethod.GET)
+//	public String dashboard() {
+//		return "main/mainpage/dashboard";
+//	}
+	
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/", method = RequestMethod.GET)
+	public String gridstack(Principal principal, Model model) {
+		List<PortletVO> portletList = portletService.showPortlet(principal.getName());
+		model.addAttribute("portletList", portletList);
+		// 여기에 포틀릿에 나타낼 각각의 데이터 보내야 함
+		
+		// 근태시간
+		int percent = 0;
+		// 금일 일한 내용넣어줄 VO
+		AtStatusVO atStatusVO = new AtStatusVO();
+		atStatusVO = attendService.selectAttendStatus(atStatusVO);
+		AttendVO attendVO = new AttendVO();
+		attendVO = attendService.selectTodayAttend(attendVO);
+		System.out.println(attendVO);
+		
+		// 금일 일한 퍼센테이지를 넣어줄 VO
+		AttendVO getAttendPercent = new AttendVO();
+		if(attendVO==null) {}else {
+			if(attendVO.getAtStart()==null) {}else {
+				// 프로그래스바의 차이를 가져와서 diff에 담아놓음.
+				getAttendPercent = attendService.selectAttendPercent(getAttendPercent);
+				// diff에 담긴 내용을 바탕으로 퍼센트를 뽑아냄.	
+				percent = attendService.getPercent(getAttendPercent);
+			}
+		}
+		
+		model.addAttribute("atStatusVO", atStatusVO);
+		model.addAttribute("percent", percent);
+		model.addAttribute("attendVO", attendVO);
+		
+		return "main/mainpage/gridstack";
+	}
+	
+	@RequestMapping(value="/setgrid.do", method = RequestMethod.GET)
+	public String setGrid(Principal principal, Model model) {
+		List<PortletVO> portletList = portletService.showPortlet(principal.getName());
+		model.addAttribute("portletList", portletList);
+		return "main/mainpage/gridstackSetting";
+	}
+	
+	@RequestMapping(value="/grid/{menu}", method = RequestMethod.GET)
+	public String gridstack(@PathVariable String menu) {
+		return "mainpage/" + menu;
+	}
+	
+	@RequestMapping(value="/savegrid.do", method = RequestMethod.POST)
+	public ResponseEntity<String> saveGrid(@RequestBody List<PortletVO> portletList, Principal principal) {
+		log.info("포틀릿 아이디 정보 : " + principal.getName());
+		
+		portletService.clearPortlet(principal.getName());
+		for(PortletVO portlet : portletList) {
+			portlet.setEmpNo(principal.getName());
+			portletService.addPortlet(portlet);
+			log.info("포틀릿 정보 : " + portlet);
+		}
+		
+		ResponseEntity<String> entity = new ResponseEntity<String>("SUCCESS", HttpStatus.OK);
+		return entity;
+	}
+	
+
+}

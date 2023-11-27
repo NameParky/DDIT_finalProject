@@ -1,0 +1,316 @@
+package kr.or.ddit.controller.attend;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.service.IAttendService;
+import kr.or.ddit.vo.AtStatusVO;
+import kr.or.ddit.vo.AttendVO;
+import kr.or.ddit.vo.AyannVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class AttendController {
+	
+	@Inject
+	private IAttendService service;
+	
+	private void setAttendBar(Model model) {
+	    String attendBar = "EXIST";
+	    model.addAttribute("attendBar", attendBar);
+	}
+
+	// 근무일정변경 (근태메인)으로 이동
+	@RequestMapping(value="/attendmain.do", method=RequestMethod.GET)
+	public String AttendMain(Model model) {	
+		
+		setAttendBar(model);
+		return "main/attend/attendMain";
+	}
+	
+	// 근무일정변경 로직수행
+	@RequestMapping(value="/attendmain.do", method=RequestMethod.POST)
+	public String AttendMainPost(Model model, String atType) {
+		
+		AttendVO attendVO = new AttendVO();		
+		attendVO.setAtType(atType);	
+		attendVO.setAtWeek(service.selectTodayWeek());
+		service.insertStartAttendC(attendVO);
+		
+		String message="["+atType+"]"+"근무로 변경이 완료되었습니다.";
+		
+		model.addAttribute("mainMessage", message);
+		setAttendBar(model);
+		return "main/attend/attendance";
+	}
+	
+	
+	
+	// 출퇴근 현황조회로 이동
+	@RequestMapping(value="/attendance.do", method=RequestMethod.GET)
+	public String Attendance(Model model) throws ParseException {
+		
+		int percent = 0;
+		AttendVO attendVO = new AttendVO();
+		attendVO = service.selectTodayAttend(attendVO);
+		
+		
+		List<AttendVO> attendThisWeekList = service.selectThisWeekAttend(attendVO);
+		for(int i = 0; i < attendThisWeekList.size(); i++) {
+			System.out.println("금주일한거 : "+attendThisWeekList.get(i).getAtStart());
+		}
+
+		AttendVO attendSum = new AttendVO();
+		attendSum = service.sumThisWeekList(attendThisWeekList);
+		
+		// 셀렉트박스에 달정보를 넣어줄 로직.				
+		AttendVO yearmonthCheck = new AttendVO();
+		List<AttendVO> monthExist  = service.selectMonthExist(yearmonthCheck);
+		AtStatusVO status = new AtStatusVO(); 
+		status = service.selectAttendStatus(status);
+		
+		AttendVO getAttendPercent = new AttendVO();
+		if(attendVO==null) {
+			
+		}else {
+			if(attendVO.getAtStart()==null) {
+			}else {
+				// 프로그래스바의 차이를 가져와서 diff에 담아놓음.
+				getAttendPercent = service.selectAttendPercent(getAttendPercent);
+				// diff에 담긴 내용을 바탕으로 퍼센트를 뽑아냄.	
+				percent = service.getPercent(getAttendPercent);
+				System.out.println("인트로 받아낸 값 : "+percent);
+			}
+		}
+		
+		System.out.println(attendSum.getAtSum()+"/"+attendSum.getAtOverSum());
+		
+		model.addAttribute("percent", percent);
+		model.addAttribute("status", status);
+		model.addAttribute("monthExist", monthExist);
+		model.addAttribute("attendSum", attendSum);
+		model.addAttribute("attendVO", attendVO);
+		setAttendBar(model);
+		
+		return "main/attend/attendance";
+	}
+	
+	// 출퇴근 현황조회 로직수행
+	@RequestMapping(value="/attendance.do", method=RequestMethod.POST)
+	public String AttendancePost(Model model, AttendVO attendVO) throws ParseException {
+		log.info("출퇴근등록 POST 진입 : ");
+		
+		if(attendVO.getYearMonth()==null) {
+			String message = service.insertStartAttend(attendVO);
+			if(message!=null) {
+				model.addAttribute("message", message);
+			}
+		}
+		
+		
+		attendVO = service.selectTodayAttend(attendVO);
+		
+		List<AttendVO> attendThisWeekList = service.selectThisWeekAttend(attendVO);
+
+		AttendVO attendSum = new AttendVO();
+		attendSum = service.sumThisWeekList(attendThisWeekList);
+		
+		// 셀렉트박스에 달정보를 넣어줄 로직.				
+		AttendVO yearmonthCheck = new AttendVO();
+		List<AttendVO> monthExist  = service.selectMonthExist(yearmonthCheck);
+				
+		model.addAttribute("monthExist", monthExist);
+				
+		model.addAttribute("attendSum", attendSum);
+		model.addAttribute("attendVO", attendVO);
+		
+		setAttendBar(model);
+		return "main/attend/attendance";
+	}
+	
+	// 출퇴근 현황조회 로직수행
+		@RequestMapping(value="/attendanceMain.do", method=RequestMethod.POST)
+		public String AttendancePostMain(Model model, AttendVO attendVO) throws ParseException {
+			log.info("출퇴근등록 POST 진입 : ");
+			
+			if(attendVO.getYearMonth()==null) {
+				String message = service.insertStartAttend(attendVO);
+				if(message!=null) {
+					model.addAttribute("message", message);
+				}
+			}
+			
+		
+			return "redirect:/";
+		}
+	
+	@ResponseBody
+	@RequestMapping(value="/attendanceAjax.do", method = RequestMethod.POST)
+	public Map<String, List<AttendVO>> AttendanceAjax(@RequestBody Map<String, Object> param, Model model){
+		System.out.println("에이젝스 시작");
+		
+		String yearMonth = (String)param.get("yearMonth");
+		AttendVO attendVO = new AttendVO();
+		attendVO.setYearMonth(yearMonth);
+	
+		System.out.println("몬쓰리스트 들어옴");
+		List<AttendVO> monthList = new ArrayList<AttendVO>();
+		List<AttendVO> weekList = new ArrayList<AttendVO>();
+		monthList = service.selectMonthAttend(attendVO);
+		weekList = service.selectWeek(attendVO);
+
+		Map<String, List<AttendVO>> ajaxMap = new HashMap<String, List<AttendVO>>();
+
+		ajaxMap.put("monthList", monthList);
+		ajaxMap.put("weekList", weekList);
+		System.out.println("에이잭스 끝");
+		return ajaxMap;	
+	}
+	
+	@ResponseBody
+	@RequestMapping(value="/attendanceAjax2.do", method = RequestMethod.POST)
+	public Map<String, List<AttendVO>> AttendanceAjax2(@RequestBody Map<String, Object> param, Model model) {
+		System.out.println("에이잭스2 시작");
+		List<AttendVO> weekAttendList = new ArrayList<AttendVO>();
+		AttendVO weekAttend = new AttendVO();
+		Map<String, List<AttendVO>> ajaxMap = new HashMap<String, List<AttendVO>>();
+		
+		if(param.get("weekData").equals("주차를 선택하세요")) {
+			return null;
+		}
+		String yearMonth = (String)param.get("yearMonth");
+		String weekData = (String)param.get("weekData");
+		int atWeek = Integer.parseInt(weekData);
+		
+		System.out.println("이어몬쓰 : "+yearMonth);
+		System.out.println("위크데이터 : "+weekData);
+		
+		weekAttend.setYearMonth(yearMonth);
+		weekAttend.setAtWeek(atWeek);
+		
+		weekAttendList = service.selectWeekAttend(weekAttend);
+		
+		
+		ajaxMap.put("weekAttendList", weekAttendList);
+		
+		return ajaxMap;
+	}
+	
+	
+	// 근무상태변경으로 이동
+	@RequestMapping(value="/attendstatus.do", method=RequestMethod.GET)
+	public String AttendStatus(Model model) {
+		
+		AtStatusVO statusVO = new AtStatusVO();
+		AtStatusVO status = service.selectAttendStatus(statusVO); 
+		System.out.println();
+		
+		System.out.println(status.getAtStatus());
+		model.addAttribute("status", status);
+		setAttendBar(model);
+		return "main/attend/attendStatus";
+	}
+	
+
+	@RequestMapping(value="/updateAtStatus.do", method=RequestMethod.POST)
+	public String AtStatusAjax(AtStatusVO atStatusVO,
+			HttpServletRequest req, HttpServletResponse resp) {
+		
+		service.updateAttendStatus(atStatusVO);
+		atStatusVO = service.selectAttendStatus(atStatusVO);
+		System.out.println("여기보아라 : "+atStatusVO.getAtStatus());
+		
+		return "redirect:/attendance.do";
+	}
+	
+	
+	@RequestMapping(value="/updateAtStatus2.do", method=RequestMethod.POST)
+	public String AtStatusAjax2(AtStatusVO atStatusVO,
+			HttpServletRequest req, HttpServletResponse resp) {
+		
+		service.updateAttendStatus(atStatusVO);
+		atStatusVO = service.selectAttendStatus(atStatusVO);
+		System.out.println("여기보아라 : "+atStatusVO.getAtStatus());
+		
+		return "redirect:/";
+	}
+	
+	
+	// 근태현황으로 이동
+	@RequestMapping(value="/attendsituation.do", method=RequestMethod.GET)
+	public String AttendSituation(Model model) {
+		
+		AttendVO yearmonthCheck = new AttendVO();
+		List<AttendVO> monthExist  = service.selectMonthExist(yearmonthCheck);
+				
+		model.addAttribute("monthExist", monthExist);
+		
+		setAttendBar(model);
+		return "main/attend/attendSituation";
+	}
+		
+	// 연차리스트로 이동
+	@RequestMapping(value="/ayannlist.do", method=RequestMethod.GET)
+	public String AyannList(Model model) {
+		
+		AyannVO ayannVO = new AyannVO(); 
+		List<AyannVO> ayannList = service.selectAyannList(ayannVO);
+		AyannVO ayannThisYear = service.selectThisYearAyann(ayannVO);
+		
+		System.out.println("연차리스트 : "+ayannList);
+		System.out.println("올해연차  : "+ayannThisYear);
+		
+		model.addAttribute("ayannThisYear", ayannThisYear);
+		model.addAttribute("ayannList", ayannList);
+		setAttendBar(model);
+		return "main/attend/ayannList";
+	}
+	
+	
+	// 연차신청으로 이동
+	@RequestMapping(value="/ayannapply.do", method=RequestMethod.GET)
+	public String AyannApply(Model model) {
+		
+		setAttendBar(model);
+		return "main/attend/ayannApply";
+	}
+	
+	@ResponseBody
+	@RequestMapping(value="/POIAjax.do", method=RequestMethod.POST)
+	public Map<String, String> POIAjax(@RequestBody Map<String, Object[]> param, HttpServletResponse response) throws IOException {
+		
+		String messagePart = service.dbToExcel(param, response);
+		
+		Map<String, String> result = new HashMap<String, String>();
+		String message = "근태현황 엑셀자료 저장이 완료되었습니다."
+				+ "저장경로 및 파일이름 : "+messagePart;
+		result.put("message", message);
+			
+		return result;
+	}
+
+	
+}

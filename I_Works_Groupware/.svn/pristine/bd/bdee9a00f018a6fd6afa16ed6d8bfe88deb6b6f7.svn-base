@@ -1,0 +1,30 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.AtrzFormVO;
+import kr.or.ddit.vo.AtrzPathVO;
+import kr.or.ddit.vo.DraftRefVO;
+import kr.or.ddit.vo.DraftVO;
+
+public interface AuthMapper {
+
+	public List<AtrzFormVO> selectAtrzForm();
+	public AtrzFormVO selectAtrzContent(String atrzfCd);
+	public int draftTempSaveInsert(DraftVO draftVO);
+	public int atrzPathInsert(AtrzPathVO pathVO);
+	public void refInsert(String drftCd);
+	public int refInsert(DraftRefVO refVO);
+	public List<DraftVO> selectTempSaveList(String empNo);
+	
+	public DraftVO tempSaveDetail(DraftVO draftVO);
+	public List<AtrzPathVO> pathSelect(DraftVO draftVO);
+	public List<DraftRefVO> refSelect(DraftVO draftVO);
+	//임시저장 삭제 > 결재선, 참조자 같이 삭제
+	public void refDelete(String drftCd);
+	public void authPathDelete(String drftCd);
+	public int tempSaveDelete(String drftCd);
+	//결재상신
+	public int approvalInsert(DraftVO draftVO);
+
+}

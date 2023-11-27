@@ -1,0 +1,54 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<h2>내동호회</h2>
+<br>
+
+<div class="card-group">
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/54.png" alt="...">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center border-0">
+      	<a href=""><h4 class="card-title">여행동호회</h4></a>
+      	<span class="card-title badge bg-success">운영관리</span>
+      </div>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/44.png" alt="...">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center border-0">
+      	<a href=""><h4 class="card-title">여행동호회</h4></a>
+      	<span class="card-title badge bg-warning">승인대기</span>
+      </div>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/46.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<script type="text/javascript">
+$(function(){
+	var clubId = $('#clubId');
+	
+	clubId.on('click', function(){
+		location.href="/clubdetail.do"
+	});
+
+});
+</script>

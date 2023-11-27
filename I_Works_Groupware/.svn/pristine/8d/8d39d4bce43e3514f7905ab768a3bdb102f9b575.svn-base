@@ -1,0 +1,44 @@
+package kr.or.ddit.controller.mail;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class MailController {
+
+	@RequestMapping(value="/receivedmail.do", method=RequestMethod.GET)
+	public String ReceivedMail() {
+		return "main/mail/receivedMail";
+	}
+	
+	@RequestMapping(value="/sendedmail.do", method=RequestMethod.GET)
+	public String SendedMail() {
+		return "main/mail/sendedMail";
+	}
+	
+	@RequestMapping(value="/receivedmyselfmail.do", method=RequestMethod.GET)
+	public String ReceivedMyselfMail() {
+		return "main/mail/receivedMyselfMail";
+	}
+	
+	@RequestMapping(value="/sendmail.do", method=RequestMethod.GET)
+	public String SendMail() {
+		return "main/mail/sendMail";
+	}
+	
+	@RequestMapping(value="/sendtome.do", method=RequestMethod.GET)
+	public String sendToMe() {
+		return "main/mail/sendToMe";
+	}
+	
+	@RequestMapping(value="/importantmail.do", method=RequestMethod.GET)
+	public String importantMail() {
+		return "main/mail/importantMail";
+	}
+	
+	@RequestMapping(value="/deletedmail.do", method=RequestMethod.GET)
+	public String deletedMail() {
+		return "main/mail/deletedMail";
+	}
+}

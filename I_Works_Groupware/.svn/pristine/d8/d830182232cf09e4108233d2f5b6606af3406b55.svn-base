@@ -1,0 +1,62 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>결재 대기 문서</title>
+</head>
+<body>
+<h2>결재 대기 문서</h2>
+	<br/>
+	<div id="tableExample4" data-list='{"valueNames":["chkBox","drftTitle","drtfDate"],"page":10,"pagination":true,"filter":{"key":"drtfDate"}}'>
+		 <div class="table-responsive">
+		    <table class="table table mb-0" style="text-align: center;">
+		      <thead>
+		        <tr class="bg-light">
+		          <th class="ps-8" style="width: 100px;">번호</th>
+		          <th class="" style="width: 200px;">제목</th>
+		          <th class="" style="width: 200px;">기안일</th>
+		          <th class="" style="width: 200px;">기안자</th>
+		          <th class="" style="width: 300px;">상태</th>
+		        </tr>
+		      </thead>
+			  <c:choose >
+		      	<c:when test="${empty waitList }">
+		      		<p>결재 대기중인 문서가 없습니다.</p>
+		      	</c:when>
+		      	<c:otherwise>
+				   <tbody class="list">
+		      	  	 <c:forEach items="${waitList }" var="wList" varStatus="i">
+				        <tr>
+				          <th class="align-middle ps-8 ">${waitList.size() - i.index }</th>
+				          <td class="align-middle drftTitle"><a href="/auth/waitdetail.do?drftCd=${wList.drftCd }">${wList.drftTitle}</a></td>
+				          <td class="align-middle drtfDate ">${wList.drftDate}</td>
+				          <td class="align-middle empName ">${wList.empName}</td>
+				          <td class="align-middle status"> 
+				          	<span class="badge badge-phoenix badge-phoenix-info">${wList.atrzpStatusse}</span>
+				          </td>
+				        </tr>
+			      	 </c:forEach>
+			       </tbody>
+		      	</c:otherwise>
+		      </c:choose>
+		    </table>
+		  </div>
+		  <div class="d-flex justify-content-center mt-3">
+		  	<button class="page-link" data-list-pagination="prev">
+		  		<span class="fas fa-chevron-left"></span>
+		  	</button>
+		    	<ul class="mb-0 pagination"></ul>
+		    <button class="page-link pe-0" data-list-pagination="next">
+		    	<span class="fas fa-chevron-right"></span>
+		    </button>
+		  </div>
+		</div>
+	<br/>
+		
+		
+</body>
+</html>

@@ -1,0 +1,114 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<h2>동호회</h2>
+<br>
+
+<h3>인기동호회</h3><br>
+<div class="card-group">
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/54.png" alt="...">
+    <div class="card-body">
+      <a href=""><h4 class="card-title">여행동호회</h4></a>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/44.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">야구동호회</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/46.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+</div>
+
+<hr>
+<br>
+
+<h3>전체동호회</h3><br>
+<div class="card-group">
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/54.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/44.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/46.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+</div>
+
+<div class="card-group">  
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top" src="resources/assets/img/generic/45.png" alt="...">
+    <div class="card-body">
+      <h4 class="card-title">First card title</h4>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+  </div>
+</div>
+
+<br>
+                  
+<script type="text/javascript">
+$(function(){
+	var clubId = $('#clubId');
+	
+	clubId.on('click', function(){
+		location.href="/clubdetail.do";
+	});
+});
+</script>

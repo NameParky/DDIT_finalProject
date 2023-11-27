@@ -1,0 +1,50 @@
+package kr.or.ddit.controller.board;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class FeventBoardController {
+	
+	@RequestMapping(value="/feventmain.do", method=RequestMethod.GET)
+	public String FeventBoard(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/feventMain";
+	}
+	
+	
+	@RequestMapping(value="/feventdetail.do", method=RequestMethod.GET)
+	public String FeventBoardDetail(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/feventDetail";
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	 * 관리자용
+	 */
+	
+	
+	@RequestMapping(value="/feventwrite.do", method=RequestMethod.GET)
+	public String WriteFeventBoard(Model model) {
+		String boardBar = "EXIST";
+		model.addAttribute("boardBar", boardBar);
+		return "main/board/feventWrite";
+	}
+
+}

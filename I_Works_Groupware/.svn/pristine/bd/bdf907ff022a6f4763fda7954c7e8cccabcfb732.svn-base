@@ -1,0 +1,170 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>결재대기문서</title>
+</head>
+<body>
+<h2>결재 대기 문서</h2>
+	<br/>
+	<div>
+		<table class="table table-sm" style="vertical-align: middle; height: 70px;">
+		    <tr>
+		      <th scope="col" style="width: 50px;">* 제목</th>
+		      <td colspan="3" >${waitDetail.drftTitle }</td>
+		    </tr>
+		    <tr>
+		      <th scope="row">* 기안자</th>
+		      <td>${waitDetail.empName } ${waitDetail.cdName}/${waitDetail.deptName }</td>
+		      <th>* 기안일</th>
+		      <td style=" width: 100px;">${waitDetail.drftDate }</td>
+		    </tr>
+		    <tr> 
+		    	<th scope="col">* 시작일</th> 
+		    		<c:set var="stdate" value="${waitDetail.drftStartdate }"/>
+				<td style="width: 150px; margin-right: 10px;">${fn:substring(stdate,0,10) }</td>
+				<th style="width: 50px;">* 종료일</th> 
+					<c:set var="enddate" value="${waitDetail.drftEnddate }"/>
+				<td>${fn:substring(enddate,0,10) }</td>
+		    </tr>
+		   <tr>
+		      <th scope="row" >* 참조자</th>
+		      <td colspan="3" id="authRef">
+		      	<!-- 참조 인원 들어갈 곳 -->
+		      	<c:choose>
+					<c:when test="${empty refList}">
+						<span class="btn btn-sm btn-phoenix-secondary rounded-pill me-1 mb-1">참조자가 없습니다.</span>
+					</c:when>
+					<c:otherwise>
+						<c:forEach items="${refList}" var="ref">
+					        <input type="hidden" name="ref" value="${ref.refEmpno }" id="refEmpno">
+				      		<span class="btn btn-sm btn-phoenix-secondary rounded-pill me-1 mb-1">${ref.empName} ${ref.cdName }/${ref.deptName}</span>
+				      	</c:forEach>
+					</c:otherwise>		      	
+		      	</c:choose>
+		      </td>
+		    </tr>
+		</table>
+	</div>
+<br>
+	
+	<div class="card-body">
+		<div class="col-md-12">
+			<textarea id="ckeditor" name="" class="form-control" rows="14" readonly="readonly">
+				
+				<!-- 결재란 시작 -->
+				<div>
+					<table border="1" style="width: 400px; float: right; text-align: center; border-collapse: collapse; table-layout: fixed" >
+						<tbody>
+							<tr>
+								<td rowspan="4" style="width: 20px">결재란</td>
+							</tr>
+							<tr>
+								<!--결재자 이름  -->
+								<td>${waitDetail.empName }</td>
+								<c:forEach items="${pathList}" var="path">
+									<td>${path.empName}</td>
+								</c:forEach>
+							</tr>
+							<tr style="height: 50px">
+								<!-- 서명사진 -->
+								<td><img width="50px;" src="${empVO.empSign }"></td>
+								<c:forEach items="${pathList}" var="path" varStatus="i">
+									<c:if test="${path.atrzpStatusse  == '결재' }">
+										<td>${path.empSign }</td>
+									</c:if>
+								</c:forEach>
+								<c:if test="${path.atrzpStatusse  != '결재' }">
+									<td></td>
+									<td></td>
+									<td></td>
+								</c:if>
+							</tr>
+							<tr>
+								<!-- 결재한 날짜  -->
+								<c:set var="drftdate" value="${waitDetail.drftDate }"/>
+								<td>${fn:substring(drftdate,0,10) }</td>
+								<c:forEach items="${pathList }" var="path">
+									<td>${path.atrzpDate}</td>
+								</c:forEach>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<!-- 결재란 끝 -->
+				<br><br><br><br>
+				${waitDetail.drftContent }
+			</textarea>
+		</div>
+	</div>
+	<br>
+	<div style="text-align: center;">
+		<button class="btn btn-outline-info" type="button" id="waitList">목록</button>
+		<button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">반려</button>
+		<button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal2">승인</button>
+	</div>
+	
+	<!-- 반려 모달 -->
+	<div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="exampleModalLabel">반려 사유</h5>
+	        <button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+	      </div>
+	      <div class="modal-body">
+	        <p class="text-700 lh-lg mb-0">
+				<textarea class="form-control" id="floatingTextarea2" placeholder="의견을 입력하세요." style="height: 100px"></textarea>
+			</p>
+	      </div>
+	      <div class="modal-footer">
+	      	<button class="btn btn-info" type="button" id="returnBtn">확인</button>
+	      	<button class="btn btn-outline-info" type="button" data-bs-dismiss="modal">취소</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	<!-- 반려 모달 -->
+	
+	<!-- 승인 모달 -->
+	<div class="modal fade" id="exampleModal2" tabindex="-1" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="exampleModalLabel">승인</h5>
+	        <button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+	      </div>
+	      <div class="modal-body">
+	        <p class="text-700 lh-lg mb-0" style="text-align: center;">
+	        	<input class="form-check-input"  type="radio" name="sign" />전결&nbsp;&nbsp;&nbsp;
+	        	<input class="form-check-input"  type="radio" name="sign" />결재
+			</p>
+	      </div>
+	      <div class="modal-footer">
+	      	<button class="btn btn-info" type="button" id="signBtn">확인</button>
+	      	<button class="btn btn-outline-info" type="button" data-bs-dismiss="modal">취소</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</body>
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace("ckeditor");
+	CKEDITOR.config.width= "100%";
+	CKEDITOR.config.height= "500px";
+	
+	var waitList = $("#waitList");
+	
+	waitList.on("click", function(){
+		location.href ="/auth/waitdoc.do";
+	});
+});
+
+</script>
+</html>

@@ -1,0 +1,38 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+public class RMailVO {
+	private String mailNo;
+	private String mailTitle;
+	private String mailContent;
+	private Date mailDate;
+	private String mailrEmpno;
+	private String mailsEmpno;
+	private String mailImpse;
+	private String mailDelse;
+	private String mailFileno;
+	private String mailChkse;
+	
+	// 보낸사람 이름들.
+	private String mailrEmpname;
+	private String mailsEmpname;
+	
+	// 참조자를 받아낼 변수.
+	private String mailrefEmpno;
+	
+	// 수신자 전원
+	private List<MailRecVO> mailRec;
+	// 참조자 전원
+	private List<MailRecVO> mailRef;
+}

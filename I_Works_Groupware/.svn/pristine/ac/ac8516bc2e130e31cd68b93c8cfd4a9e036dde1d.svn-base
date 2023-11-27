@@ -1,0 +1,159 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec"%>
+ 
+<div class="container">
+	<h2>자산대여</h2>
+	<br>
+
+
+<!--      <ul class="nav nav-underline" id="myTab" role="tablist"> -->
+<!--        <li class="nav-item" role="presentation"><a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#tab-home" role="tab" aria-controls="tab-home" aria-selected="true">Home</a></li> -->
+<!--        <li class="nav-item" role="presentation"><a class="nav-link" id="profile-tab" data-bs-toggle="tab" href="#tab-profile" role="tab" aria-controls="tab-profile" aria-selected="false" tabindex="-1">Profile</a></li> -->
+<!--        <li class="nav-item" role="presentation"><a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#tab-contact" role="tab" aria-controls="tab-contact" aria-selected="false" tabindex="-1">Contact</a></li> -->
+<!--      </ul> -->
+<!--      <div class="tab-content mt-3" id="myTabContent"> -->
+<!--        <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="home-tab">Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terry richardson ex squid. Aliquip placeat salvia cillum iphone.</div> -->
+<!--        <div class="tab-pane fade" id="tab-profile" role="tabpanel" aria-labelledby="profile-tab">Food truck fixie locavore, accusamus mcsweeney's marfa nulla single-origin coffee squid. Exercitation +1 labore velit, blog sartorial PBR leggings next level wes anderson artisan four loko farm-to-table craft beer twee. Qui photo booth letterpress, commodo enim craft beer mlkshk aliquip jean shorts ullamco ad vinyl cillum PBR. Homo nostrud organic.</div> -->
+<!--        <div class="tab-pane fade" id="tab-contact" role="tabpanel" aria-labelledby="contact-tab">Etsy mixtape wayfarers, ethical wes anderson tofu before they sold out mcsweeney's organic lomo retro fanny pack lo-fi farm-to-table readymade. Messenger bag gentrify pitchfork tattooed craft beer, iphone skateboard locavore carles etsy salvia banksy hoodie helvetica. DIY synth PBR banksy irony. Leggings gentrify squid 8-bit cred pitchfork.</div> -->
+<!--      </div> -->
+   
+	
+	
+	<c:set value="${assList }" var="assList"/>
+	<table class="table">
+	  <thead>
+	    <tr>
+	      <th width="20px;"></th>
+	      <th width="100px;">분류</th>
+	      <th width="550px;">이름</th>
+	      <th>위치</th>
+	      <th></th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	  	<c:choose>
+		  	<c:when test="${empty assList }">
+		  		<td>조회하신 자산이 존재하지 않습니다.</td>
+		  	</c:when>
+		  	<c:otherwise>
+		  		<c:forEach items="${assList }" var="ass">
+				    <tr>
+				      <td style="text-align: center;">
+					     <c:if test="${ass.asSe eq '노트북'}">
+						     <a class="icon-nav-item">
+				                  <span class="fs-4 fas fa-laptop"></span>
+			                </a>
+					     </c:if>
+					     <c:if test="${ass.asSe eq '테블릿PC'}">
+						     <a class="icon-nav-item">
+				                  <span class="fs-4 fas fa-tablet-alt"></span>
+			                </a>
+					     </c:if>
+					     <c:if test="${ass.asSe eq '차량'}">
+						     <a class="icon-nav-item">
+				                  <span class="fs-4 fas fa-car"></span>
+			                </a>
+					     </c:if>
+					     
+				      </td>
+				      <td>${ass.asSe }</td>
+				      <td>${ass.asName }</td>
+				      <td>${ass.asLoc }</td>
+<%-- 				      <td><button class="btn btn-outline-primary me-1 mb-1" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal-${ass.asCd }">예약</button></td> --%>
+				      <td><button class="todayrentbtn btn btn-outline-primary me-1 mb-1" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal-${ass.asCd }">예약</button></td>
+				    </tr>
+				    
+				    <div class="modal fade" id="exampleModal-${ass.asCd }" tabindex="-1" aria-hidden="true">
+					  <div class="modal-dialog">
+					    <div class="modal-content">
+				    		<form action="/ass/assetreservation.do" method="post">
+						      <div class="modal-header">
+						        <h5 class="modal-title" id="exampleModalLabel">자산 대여</h5><button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+						      </div>
+						      <div class="modal-body" style="text-align: center;">
+						      	<div style="display: inline-block; text-align: left;">
+						      		<input type="hidden" name="asCd" value="${ass.asCd }">
+						      		<c:set var="now" value="<%=new java.util.Date()%>" />
+							        <c:set var="sysYear"><fmt:formatDate value="${now}" pattern="MM.dd(E)" /></c:set> 
+							        <span class="fs-1 far fa-calendar-check" style="margin-right:10px;"></span><strong style="font-size:20px;"><c:out value="${sysYear }"></c:out></strong>
+							       	<br><br>
+							        <p><strong>분류 : </strong>${ass.asSe }</p>
+							        <p><strong>이름 : </strong>${ass.asName }</p>
+							        <p><strong>위치 : </strong>${ass.asLoc }</p>
+							        <span class="far fa-clock" style="margin-right:10px;"></span><strong style="margin-right:10px;">예약 시작 시간 </strong>
+							        <span class="fas fa-clock" style="margin-right:10px;"></span><strong>예약 종료 시간 </strong>
+									<div class="float">
+										<div class="d-flex">
+											<select name="asrStarttime" style="margin-left:30px;width:100px;" class="form-select" aria-label="Default select example">
+											  <option selected="09:00" value="09:00">09:00</option>
+											  <option value="10:00">10:00</option>
+											  <option value="11:00">11:00</option>
+											  <option value="12:00">12:00</option>
+											  <option value="13:00">13:00</option>
+											  <option value="14:00">14:00</option>
+											  <option value="15:00">15:00</option>
+											  <option value="16:00">16:00</option>
+											  <option value="17:00">17:00</option>
+											  <option value="18:00">18:00</option>
+											</select>
+								        
+											<select name="asrEndtime" style="margin-left:45px;width:100px;" class="form-select" aria-label="Default select example">
+											  <option selected="09:00" value="09:00">09:00</option>
+											  <option value="10:00">10:00</option>
+											  <option value="11:00">11:00</option>
+											  <option value="12:00">12:00</option>
+											  <option value="13:00">13:00</option>
+											  <option value="14:00">14:00</option>
+											  <option value="15:00">15:00</option>
+											  <option value="16:00">16:00</option>
+											  <option value="17:00">17:00</option>
+											  <option value="18:00">18:00</option>
+											</select>
+										</div>
+									</div>
+									<br>
+									<div>
+			                          <strong>대여 사유</strong>
+			                          <input class="form-control" name="asrReason" type="text">
+			                        </div>
+						        </div>
+						      </div>
+						      <div class="modal-footer"><button class="btn btn-primary" type="submit">예약</button><button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">취소</button></div>
+					    		<sec:csrfInput/>
+					    	</form>
+					    </div>
+					  </div>
+					</div>
+			    </c:forEach>
+		    </c:otherwise>
+	    </c:choose>
+	  </tbody>
+	 </table>
+           
+                   
+</div>
+<script type="text/javascript">
+$("button.todayrentbtn").click(function(){
+	var asCd = buttonId.split('-')[1]; // Extract asCd from the button ID
+	  var url = "/todayassetrent.do?asCd=" + asCd;
+	  console.log("url : ", url);
+	
+	var buttonId = $(this).attr('id');
+	console.log("buttonId : ",buttonId);
+	
+	var url = "/todayassetrent.do?asCd=${ass.asCd}";
+	var params = ${ass.asCd};
+	$.ajax({
+		url : url,
+		method : 'GET',
+		data : params,
+		dataType : 'json',
+		success : function(assVO){
+			var startTime = assVO.asrStarttime;
+			console.log("starttime : ", startTime);
+		}
+	});
+});
+</script>

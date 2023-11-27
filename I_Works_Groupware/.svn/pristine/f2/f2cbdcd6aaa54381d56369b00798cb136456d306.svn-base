@@ -1,0 +1,166 @@
+package kr.or.ddit.service.impl;
+
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.controller.admin.SendMessageController;
+import kr.or.ddit.mapper.AddMapper;
+import kr.or.ddit.mapper.AdminEmpMapper;
+import kr.or.ddit.service.IAdminEmpService;
+import kr.or.ddit.vo.EmpVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class AdminEmpServiceImpl implements IAdminEmpService {
+	
+	@Inject
+	private AdminEmpMapper mapper;
+	@Inject
+	private PasswordEncoder pe;
+	@Inject
+	private AddMapper addMapper;
+	//직원 등록 시 문자 전송 컨트롤러
+	private SendMessageController sendM = new SendMessageController();
+	
+	
+	@Override
+	public int insertEmp(EmpVO empVO) {
+		int result;
+		
+		// 비밀번호 암호화
+		log.info("등록 시 비밀번호 확인"+ empVO.getEmpPw());
+		empVO.setEmpPw(pe.encode(empVO.getEmpPw()));
+		
+//		log.info("서비스에서 empNo>>>>>>>>>>>" + empNo);
+		// 사번생성 메소드
+		empVO = registerEmpNumber(empVO);
+		log.info("사번 생성이 완료된 후 empVO 사번 확인 : "+ empVO);
+
+		result = mapper.insertEmp(empVO);
+		// 문자전송
+//		sendM.sendOne(empVO.getEmpNo(), empVO.getEmpHp());
+		
+		// 시큐리티 권한 부여
+		if(result != 0) {
+			mapper.inserAuth(empVO);
+			addMapper.createBasicGroup(empVO.getEmpNo()); // 주소록 기본그룹 생성
+		}
+		return result;
+	}
+	
+	private EmpVO registerEmpNumber(EmpVO empVO) {
+		
+		// 사번 생성을 위한 년 월 추출
+		DateFormat dateFormat = new SimpleDateFormat("yyMM");
+		Date today = new Date();
+		String dateRes = dateFormat.format(today);
+		
+		// 년월 과 부서코드를 조합한 사번 생성
+		StringBuffer empNo = new StringBuffer();
+		empNo.append(dateRes);
+		// 팀 코드에서 부서코드추출
+		String empDeptCd = empVO.getDeptCd().substring(0,3);
+		log.info("서비스에서 부서코드 추출  3자리만 나와야 함"+ empDeptCd);
+		empNo.append(empDeptCd);
+		EmpVO newEmpVO = new EmpVO();
+		newEmpVO.setDeptCd(empDeptCd);
+		
+		// 사번에서 날짜 + 부서번호를 제외하고 나머지를 가져온다.
+		// 나머지의 숫자가 1-9 범위안에 들어 있는지
+		// 나머지의 숫자가 10-99범위안에 들어 있는지
+		// 나머지의 숫자가 100범위 상위에 있는지를 체크
+		List<EmpVO> empList = mapper.selectEmpNumber(newEmpVO.getDeptCd());
+		
+		if(empList.size()>0) {
+			
+			int customNum = empList.get(0).getEmpCustomNo();
+			log.info("가져오는 customNum : "+customNum);
+			customNum += 1;
+			
+			if(customNum < 10) {	// 10보다 아래 (1-9)
+				empNo.append("00"+customNum);
+			}else if(customNum > 9 && customNum < 100) {	// (10-99)
+				empNo.append("0"+customNum);
+			}else {	// 100이상
+				empNo.append(customNum);
+			}
+			empVO.setEmpNo(empNo.toString());
+			
+		}else {
+			empNo.append("001");
+			empVO.setEmpNo(empNo.toString());
+		}
+		
+		
+		return empVO;
+	}
+
+
+	@Override
+	public List<EmpVO> selectList() {
+		return mapper.selectList();
+	}
+
+	@Override
+	public ServiceResult empWorkseUpdate(String[] empWorkse) {
+		ServiceResult result = null;
+		List<EmpVO> empList = null;
+		if(empWorkse != null) {
+			empList = new ArrayList<EmpVO>();
+			for(String empWork : empWorkse) {
+				String empNo = empWork.split(",")[0];
+				int empStatus = Integer.parseInt(empWork.split(",")[1]);
+				EmpVO empVO = new EmpVO();
+				empVO.setEmpNo(empNo);
+				empVO.setEmpWorkse(empStatus);
+				empList.add(empVO);
+			}
+		}
+		
+		int status = mapper.empWorkseUpdate(empList);
+		
+		if(status > 0) {
+			result = ServiceResult.OK;
+		}else {
+			result = ServiceResult.FAILED;
+			if(status == -1) {	// PL/SQL로 인한 update 처리
+				result = ServiceResult.OK;
+			}
+		}
+		
+		return result;
+	}
+
+	@Override
+	public EmpVO selectOne(String empNo) {
+		return mapper.selectOne(empNo);
+	}
+
+	@Override
+	public ServiceResult empUpdate(EmpVO empVO) {
+		ServiceResult result = null;
+		int updateSuccess = mapper.empUpdate(empVO);
+		if(updateSuccess != 0) {
+			result = ServiceResult.OK;
+		}else {
+			result = ServiceResult.FAILED;
+		}
+		return result;
+	}
+
+	
+}

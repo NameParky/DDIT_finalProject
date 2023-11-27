@@ -1,0 +1,167 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec"%>
+<!DOCTYPE html>
+
+	<c:set value="등록 " var="name"/>
+	<c:if test="${status eq 'u'}">
+		<c:set value="수정" var="name"/>
+	</c:if>
+	<div class="pb-5">
+		<div class="row g-4">
+			<div class="col-12 col-xxl-6">
+				<div></div>
+			</div>
+		</div>
+	</div>
+	<div class="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-white pt-7">
+		<div data-list='{"valueNames":["product","customer","rating","review","time"],"page":6}'>
+			<div>
+				<div class="container-fluid">
+					<form action="/insertNotice" method="post" id="noticeForm" enctype="multipart/form-data">
+						<div class="card" style="">
+						<section class="content-header">
+							<div class="row">
+								<div class="col-1" style=""></div>
+								<div class="col-9" >
+									<label  style="font-weight: bold; font-size: 2em;">공지사항 ${name}</label>
+									<div>
+									  	<input class="form-check-input" name = "noFix"id="flexCheckDefault" type="checkbox" value="1" <c:if test="${not empty notice.noFix }">checked</c:if>/>
+									  	<label class="form-check-label" for="flexCheckDefault">상단고정</label>
+									</div>
+								</div>
+							</div>
+							</section>
+							<section>
+								<c:if test="${status eq 'u'}">
+									<input type="hidden" name="noNo" id="noNo" value="${notice.noNo}"/>
+								</c:if>
+								<div class="row" style="margin: 20px 0px 0px 0px;">
+									<div class="col"></div>
+									<div class="col-10">
+										<input class="form-control form-control" id="noTitle" name="noTitle"
+											type="text" value="${notice.noTitle}" placeholder="제목을 입력해주세요." />
+									</div>
+									<div class="col">
+									</div>
+								</div>
+								<div class="card-body">
+									<div class="row">
+										<div class="col-1"></div>
+										<div class="col-10">
+											<textarea class="form-control" id="noContent" name="noContent"
+												style="height: 1000px;">${notice.noContent}</textarea>
+										</div>
+										<div class="col-1"></div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-1"></div>
+									<div class="col-10">
+										<div class="mb-3  px-4 pb-5">
+		  									<input class="form-control form-control-sm" id="noFile" multiple="multiple" name="noFile" type="file" />
+										</div>
+									</div>
+								</div>
+								<sec:csrfInput/>
+							<c:if test="${status eq 'u'}">
+								<div class="card-footer bg-white">
+									<ul class="noticebox-attachmets d-flex align-item-stretch clearfix">
+										<c:if test="${not empty file}">
+											<c:forEach items="${file}" var="file" varStatus="vs">
+												<div>
+													<div class="noticebox-attachment-info" id="noticebox-attachment-info">
+														<a href="#" class="noticebox-attachment-name">
+															<i class="feather-box"></i>${file.fileOrgname}
+														</a>
+														<span class="noticebox-attachment-size clearfix mt-1">
+															<span>${file.fileSize}</span>
+															<span class="btn btn-default btn-sm float-right attachmentFileDel"
+																id="span_${file.fileSec}">
+																<button type="button" class="btn btn-primary fileDelete" data-file-sec="${file.fileSec}">
+																<i class="fas fa-times"></i>
+																</button>
+															</span>
+														</span>
+													</div>
+												</div>
+											</c:forEach>
+										</c:if>
+									</ul>
+								</div>
+							</c:if>
+							</section>
+						</div><!--  -->
+					</form>
+				</div>
+			</div>
+			<div class="row align-items-center py-1">
+				<div class="pagination d-none"></div>
+				<div class="col d-flex fs--1">
+					<!-- 하단부 -->
+				</div>
+			</div>
+			<div class="row" style="margin: 15px 0px 20px 0px;">
+				<div class="col-9"></div>
+				<div class="col-3 text-end">
+					<c:if test="${status ne 'u'}">
+						<button class="btn btn-primary me-1 mb-1" type="button" id="registerBtn">등록</button>
+						<button class="btn btn-primary me-1 mb-1" type="button" id="listBtn">목록</button>
+					</c:if>
+					<c:if test="${status eq 'u'}">
+						<button class="btn btn-primary me-1 mb-1" type="button" id="modifyBtn">수정</button>
+						<button class="btn btn-primary me-1 mb-1" type="button" id="listBtn">취소</button>
+					</c:if>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace('noContent', {
+		filebrowserUploadUrl : "/imageUpload.do"                               
+    });
+		var fileDiv = $("#noticebox-attachment-info");
+		var noticeForm = $("#noticeForm");
+		var registerBtn = $('#registerBtn');
+		registerBtn.on('click', function(){
+			var noTitle = $("#noTitle").val();
+			var noContent = CKEDITOR.instances.noContent.getData();
+			var noFile = $("#noFile").val();
+		
+		if(noTitle == null || noTitle == ""){
+			alert("제목을 입력해주세요");
+			return false;
+		}
+		if(noContent == null || noContent == ""){
+			alert("내용을 입력해주세요");
+			return false;
+		}
+		noticeForm.submit();
+	});
+	
+	var listBtn = $('#listBtn');
+	listBtn.on('click', function(){
+		location.href="/noticemain.do";
+	});
+	
+	var modifyBtn = $('#modifyBtn');
+	modifyBtn.on('click', function(){
+		noticeForm.attr("action", "/noticeModify");
+		noticeForm.submit();
+	});
+	
+	$(".fileDelete").on("click", function(){
+		var fileSec = $(this).data("file-sec");
+		console.log("fileSec : " + fileSec);
+		var hiddenInput = "<input type='hidden' name='fileSec' value='" + fileSec + "' />";
+	    noticeForm.append(hiddenInput);
+	    $(this).closest("div[class='noticebox-attachment-info']").parent().hide();
+	});
+});
+</script>
+
+
+
+

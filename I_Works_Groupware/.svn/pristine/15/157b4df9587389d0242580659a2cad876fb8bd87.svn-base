@@ -1,0 +1,212 @@
+<%@page import="java.util.Date"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%
+Date now = new Date();
+pageContext.setAttribute("now", now);
+%>
+<fmt:formatDate value="${now}" pattern="MMdd" var="formattedDate" />
+<h2>&nbsp;삭제한메일함</h2>
+<div class="email-container pt-5">
+	<div class="row g-lg-6 mb-8">
+		<div class="col-lg-auto">			
+			<div class="phoenix-offcanvas-backdrop d-lg-none"
+				data-phoenix-backdrop="data-phoenix-backdrop" style="top: 0;"></div>
+		</div>
+		<div class="col-lg">
+			<div class="px-lg-1">
+				<div
+					class="border-top border-200 py-2 d-flex justify-content-between">
+					<div class="form-check mb-0 fs-0">
+						<input class="form-check-input" type="checkbox"
+							data-bulk-select-row="data-bulk-select-row" id="allCheckBox" />
+					</div>
+					
+					<!-- 상단 메뉴 버튼 (삭제 중요메일) -->
+					<div>
+						<button class="btn p-0 me-2 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="복원" id="deleteMailBtn">
+							<span class="text-700 uil uil-redo"></span>
+						</button>
+						<button class="btn p-0 me-2 text-500 hover-text-600"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							data-bs-title="삭제" id="deleteMailBtn">
+							<span class="text-700 uil uil-trash"></span>
+						</button>
+					</div>
+				</div>
+				<hr/>
+				
+				
+				
+				<div id="mailListDiv">
+				<!-- 메일 본문이 들어가는 곳 (for문 돌리기) -->
+				<c:forEach items="${mailList }" var="mailAll">
+				<form action="/sendmail.do" method="POST" id="${mailAll.mailNo }">
+				<input type="hidden" value="${mailAll.mailNo }" name="mailNo" id="${mailAll.mailNo }+'no'"/>
+				<input type="hidden" value="${mailAll.mailTitle }" name="mailTitle"/>
+				<input type="hidden" value="${mailAll.mailContent }" name="mailContent"/>
+				<input type="hidden" value="${mailAll.mailDate }" name="mailDate"/>
+				<input type="hidden" value="${mailAll.mailrEmpno }" name="mailDate"/>
+				<input type="hidden" value="${mailAll.mailsEmpno }" name="mailsEmpno"/>
+				<input type="hidden" value="${mailAll.mailImpse }" name="mailImpse"/>
+				<input type="hidden" value="${mailAll.mailDelse }" name="mailDelse"/>
+				<input type="hidden" value="${mailAll.mailFileno }" name="mailFileno"/>
+				<input type="hidden" value="${mailAll.mailChkse }" name="mailChkse"/>
+				<input type="hidden" value="${mailAll.mailrEmpname }" name="mailrEmpname"/>
+				<input type="hidden" value="${mailAll.mailsEmpname }" name="mailsEmpname"/>
+				
+					<div class="border-bottom border-200 hover-actions-trigger">
+						<div class="row align-items-sm-center gx-2">
+							<div class="col-auto">
+								<div class="d-flex flex-column flex-sm-row">
+									<input class="form-check-input mb-2 m-sm-0 me-sm-2 mailSelectBox"
+										type="checkbox" id="checkbox-1"
+										data-value="${mailAll.mailNo }"
+										data-bulk-select-row="data-bulk-select-row" />
+								</div>
+							</div>
+							<div class="col-auto"></div>
+							<div class="col-auto">
+								<!-- 작성자 -->
+								<a class="text-1100 fw-bold inbox-link fs-1 detailSelector" style="cursor:pointer" data-value="${mailAll.mailNo }">&nbsp;&nbsp;${mailAll.mailsEmpname }</a>
+							</div>
+							<div class="col-auto ms-auto">
+								<!-- 작성시간 -->
+								<fmt:formatDate value="${mailAll.mailDate}" pattern="MMdd" var="isThisToday" />
+								<c:if test="${formattedDate eq isThisToday}">
+									<fmt:formatDate value="${mailAll.mailDate}" pattern="HH:mm:ss"
+										var="mailTime" />
+								</c:if>
+								<c:if test="${formattedDate ne isThisToday}">
+									<fmt:formatDate value="${mailAll.mailDate}" pattern="MM월 dd일"
+										var="mailTime" />
+								</c:if>
+								<span class="fs--2 fw-bold">${mailTime}</span>
+							</div>
+						</div>
+						<div class="ms-4 mt-n3 mt-sm-0 ms-sm-11">
+							<a class="d-block inbox-link""><span
+								class="fs--1 line-clamp-1 text-1100"></span> <!-- 작성제목 -->
+								<p class="fs--1 ps-0 fw-bold text-1100 mb-0 line-clamp-3 detailSelector" style="cursor:pointer" data-value="${mailAll.mailNo }">${mailAll.mailTitle }</p>
+							</a>
+						</div>
+						<div class="ms-4 mt-n3 mt-sm-0 ms-sm-11">
+							<a class="d-block inbox-link"> <!-- 작성내용 -->
+								<p class="fs--1 ps-0 text-700 mb-0 line-clamp-2 detailSelector" style="cursor:pointer" data-value="${mailAll.mailNo }">${mailAll.mailContent }</p>
+							</a>
+						</div>
+					</div>
+					</form>
+				</c:forEach>
+				</div>
+
+
+			</div>
+		</div>
+	</div>
+</div>
+<input type="hidden" value="true" id="checkFlag" />
+
+<!-- 체크된 애들을 모아놓는 곳. -->
+<form action="" method="POST" id="selectBoxForm">
+	<input type="hidden" value="" name="mailArray" class="mailSelectArray"/>
+</form>
+<script>
+
+$(function() {
+
+	$(document).on('click','.detailSelector', function(){
+		console.log($(this).data('value'));
+		location.href="/receivedMailDetail.do?mailNo="+$(this).data('value');
+	});
+	
+	// 전체 체크박스 처리에 필요한 변수
+	var mailSelectBox = $('.mailSelectBox'); // 클래스로 정의된 개인 체크박스들.
+	// 전체체크박스 처리
+	$(document).on("click", '#allCheckBox', function() {
+		if ($('#checkFlag').val() == "true") {
+			console.log("트루");
+			$('.mailSelectBox').prop('checked', true);
+			$('#checkFlag').val('false');
+			mailSelectBox.prop('checked', true);
+		} else {
+			console.log("펄스");
+			$('#checkFlag').val('true');
+			$('.mailSelectBox').prop('checked', false);
+		}
+	});
+	
+	
+	// 별모양 버튼을 눌렀을때 좋아요를 수정해줄 ajax문
+	$(document).on("click",".mailLike",function(){
+		console.log($(this).data('value'));
+		// 돔요소 자체를 가져올 예정이므로 제이쿼리 선택자가 아닌 돔선택자를 사용.
+		var starIcon = this;
+		console.log(this);
+		console.log(starIcon);
+		var mailNo = $(this).data('value');
+		var mailNo = {
+				"mailNo" : mailNo
+		}
+		$.ajax({
+			type : "POST",
+			url : "/mailLikeAjax.do",
+			data : JSON.stringify(mailNo),
+			contentType : "application/json; charset=utf-8",
+			success : function(result){
+				// 반환값으로 vo를 가져와서 그안에 fileLikese에 따라 class를 변경해준다.
+				// 클래스내용을 변경할땐 classList.remove('내용'); 혹은 classList.add('내용'); 을 사용한다.
+				if(result.mailLike.mailImpse == "1") {
+					console.log(starIcon);
+					console.log('1일떄');
+					starIcon.classList.remove('text-warning');
+				} else if (result.mailLike.mailImpse == "2") {
+					console.log(starIcon);
+					console.log('2일떄');
+					starIcon.classList.add('text-warning');
+				}
+			}
+		})
+	});
+
+	// 삭제 버튼을 눌렀을때의 이벤트.
+	$(document).on('click', '#deleteMailBtn', function() {
+		
+		var mailList = []; // 히든에 있는메일 어레이에 담아준 어레이변수.
+		var mailSelectArray = $('.mailSelectArray'); // 히든으로 되어있는 인풋의 클래스값.
+		var selectBoxDelForm = $('#selectBoxForm'); // 히든으로 되어있는 인풋을 서브밋해줄 form값.
+		
+		// 체크박스 체크된 파일코드 어레이에 넣기.
+		mailSelectBox.each(function() {
+			if ($(this).is(":checked") == true) {
+				console.log($(this).data('value'));
+				mailList.push($(this).data('value'));
+			}
+		})
+		console.log(mailList)
+			console.log('랭쓰 : ' + mailList.length);
+		if (mailList.length == 0) {
+			alert('메일을 선택해주세요');
+			return false;
+		}
+
+		if (mailList != null) {
+			mailSelectArray.val(mailList);
+		}
+		customConfirm('휴지통에서 삭제 된 메일은 다시 복구가 되지 않습니다. 정말 삭제하시겠습니까?').then((userConfirmed) => {
+	          if (userConfirmed) {
+				$('#selectBoxForm').prop('action', '/deleteMailAll.do');
+				selectBoxForm.submit();
+	          } else {
+	        	  return false;
+	          }
+		})
+	});
+});
+</script>
+
+
+

@@ -1,0 +1,253 @@
+package kr.or.ddit.controller.admin;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.service.IAdminEmpService;
+import kr.or.ddit.service.IAttendService;
+import kr.or.ddit.vo.EmpVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class AdminEmpController {
+
+	@Inject
+	private IAdminEmpService service;
+	
+	@Inject
+	private IAttendService attendService;
+	
+	// 직원관리 > 계정조회
+	@GetMapping("/adminEmpList.do")
+	public String adminEmpList(Model model) {
+
+		List<EmpVO> empList = service.selectList();
+		model.addAttribute("empList", empList);
+
+		return "main/admin/adminAccount/empList";
+	}
+
+	// 직원 디테일 조회
+	@GetMapping("/adminEmpSelect.do")
+	public String adminEmpSelect(String empNo, Model model, String msg) {
+		log.info("selectOne >>>>>>empNo >>>> : " + empNo);
+		EmpVO empVO = service.selectOne(empNo);
+		log.info("empVO를 제대로 가져오는가>>> " + empVO);
+
+		if (msg != null) {
+			model.addAttribute("status", "u");
+		}
+
+		model.addAttribute("empVO", empVO);
+		return "main/admin/adminAccount/empDetail";
+	}
+
+	// 직원 정보 업데이트
+	@PostMapping("/empUpdate.do")
+	public String empUpdate(EmpVO empVO, Model model, RedirectAttributes ra) {
+
+		ServiceResult result = null;
+
+		result = service.empUpdate(empVO);
+		if (result.equals(ServiceResult.OK)) {
+			ra.addFlashAttribute("message", "회원 정보를 업데이트하였습니다.");
+
+		} else {
+			ra.addFlashAttribute("message", "서버에러, 다시 시도해주세요!");
+		}
+
+		return "redirect:/adminEmpSelect.do?empNo=" + empVO.getEmpNo();
+	}
+
+	// 직원관리 > 계정등록
+	@GetMapping("/adminEmpRegister.do")
+	public String adminEmpRegister() {
+		return "main/admin/adminAccount/empRegister";
+	}
+
+	// 개별 직원등록
+	@PostMapping("/adminEmpRegisterSingle.do")
+	public String adminEmpRegisterSingle(Model model, EmpVO empVO, RedirectAttributes ra) {
+
+		if (empVO.getEmpRank().equals("A201") || empVO.getEmpRank().equals("A202")) {
+			empVO.setEmpLevel(1);
+		} else if (empVO.getEmpRank().equals("A203") || empVO.getEmpRank().equals("A204")
+				|| empVO.getEmpRank().equals("A205")) {
+			empVO.setEmpLevel(2);
+		} else {
+			empVO.setEmpLevel(3);
+		}
+
+		int result = service.insertEmp(empVO);
+
+		if (result != 0) {
+			ra.addFlashAttribute("message", "계정 생성에 성공하였습니다!");
+//			attendService.insertDefaultAttend(empVO);
+			return "redirect:/adminEmpList.do";
+		} else {
+			ra.addFlashAttribute("message", "계정 생성에 실패하였습니다...");
+			return "main/admin/adminAccount/empRegister";
+		}
+
+	}
+
+	// poi를 활용한 다수 직원 등록
+	@PostMapping("/uploadExcel.do")
+	public String uploadExcel(HttpServletRequest req, @RequestParam("empExcel") MultipartFile multipartFile, RedirectAttributes ra) throws ParseException {
+		
+		// 입사일자를 받아서 포맷 지정을 위한 용도
+		SimpleDateFormat sdf = new SimpleDateFormat("yy/MM/dd");
+		// insertEmp 실행 확인 
+		int result;
+		String goPage ="redirect:/adminEmpList.do";
+		
+		String newFileName = "";
+		// 업로드 파일을 저장할 경로
+		String uploadPath = req.getServletContext().getRealPath("/resources/profile");
+		log.info("uploadExcel() 여기에서 넘어오는 파일 이름 확인 >>>>" + multipartFile.getOriginalFilename());
+		File fileupload = new File(uploadPath);
+		if (!fileupload.exists()) {
+			fileupload.mkdirs();
+		}
+
+		try {
+			if(multipartFile.getOriginalFilename() != null && !multipartFile.getOriginalFilename().equals("")) {
+				newFileName = UUID.randomUUID().toString();
+				newFileName+="_"+multipartFile.getOriginalFilename();
+				uploadPath+="/"+newFileName;
+				// 파일 복사
+				multipartFile.transferTo(new File(uploadPath));
+				// 복사한 파일 불러오기
+			}
+
+			FileInputStream file = new FileInputStream(uploadPath);
+			// 엑셀 객체에 해당 파일 보냄
+			XSSFWorkbook workbook = new XSSFWorkbook(file);
+
+			
+
+			// 현재 행 번호
+			int rowNo = 0;
+			// 현재 열 번호
+			int cellIndex = 0;
+
+			XSSFSheet sheet = workbook.getSheetAt(0);
+
+			// row 총 길이
+			int rows = sheet.getPhysicalNumberOfRows();
+			// 행 반복문(행의 총 길이만큼)
+			for (rowNo = 1; rowNo < rows; rowNo++) {
+				EmpVO empVO = new EmpVO();
+				XSSFRow row = sheet.getRow(rowNo);
+				if (row != null) {
+					// 열의 총 길이
+					int cells = row.getPhysicalNumberOfCells();
+					// 열의 총 길이만큼 반복
+					for (cellIndex = 0; cellIndex < cells; cellIndex++) {
+						XSSFCell cell = row.getCell(cellIndex);
+						String value = "";
+
+						if (cell == null) {
+							continue;
+						} else {
+							switch (cell.getCellType()) {
+							case FORMULA:
+								value = cell.getCellFormula(); // 수식반환
+								break;
+							case NUMERIC:
+								value = cell.getNumericCellValue() + ""; // 숫자 반환
+								break;
+							case STRING:
+								value = cell.getStringCellValue() + ""; // 문자열 반환/빈 셀은 빈 문자열
+								break;
+							case BLANK:
+								value = cell.getBooleanCellValue() + "";
+								break;
+							case ERROR:
+								value = cell.getErrorCellValue() + ""; // 셀값을 오류코드로
+
+							}
+						}
+						log.info(rowNo + "번 행 : " + cellIndex + "번 열 값은: " + value);
+					}
+					empVO.setEmpName(row.getCell(0).getStringCellValue());
+					empVO.setEmpRank(row.getCell(1).getStringCellValue());
+					empVO.setDeptCd(row.getCell(2).getStringCellValue());
+					// double 타입으로 데이터가 들어온다 > int로 형변환하여 받아줌
+					int empPwCellValue = (int)row.getCell(3).getNumericCellValue();
+					// 더블을 스트링으로 형변환 처리해하여 empVO.setEmpPw 셋팅
+					String empPw = Integer.toString(empPwCellValue);
+					log.info("최종 empPw 확인  : "+ empPw);
+					empVO.setEmpPw(empPw);
+					empVO.setEmpHp(row.getCell(4).getStringCellValue());
+					empVO.setEmpRegno(row.getCell(5).getStringCellValue());
+					empVO.setEmpGender(row.getCell(6).getStringCellValue());
+					empVO.setEmpForeig(row.getCell(7).getStringCellValue());
+					String hire = row.getCell(8).getStringCellValue();
+					Date hireDate = sdf.parse(hire);
+					log.info("패턴확인 "+hireDate);
+					empVO.setEmpHire(hireDate);	
+					log.info("empVO 값 확인 "+ empVO);
+					
+					result = service.insertEmp(empVO);
+					if(result == 0) {
+						ra.addFlashAttribute("message", "엑셀 파일 업로드 중 오류 발생 !"+rowNo+"행을 확인 해주세요!");
+						goPage = "redirect:/";
+					}
+					
+				}
+				workbook.close();
+				
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+		return goPage;
+	}
+
+	// 직원 재직여부 변경
+	@PostMapping("/empWorkseUpdate.do")
+	public String empWorkseUpdate(String[] empWorkse, Model model, RedirectAttributes ra) {
+		ServiceResult result = service.empWorkseUpdate(empWorkse);
+
+		if (result.equals(ServiceResult.FAILED)) {
+			ra.addFlashAttribute("message", "서버에러, 다시 시도해주세요!");
+		}
+
+		return "redirect:/adminEmpList.do";
+	}
+
+	// 직원관리 > 서류관리
+	@GetMapping("/docmanage.do")
+	public String docmanage() {
+		return "main/admin/adminemp/docmanage";
+	}
+
+}

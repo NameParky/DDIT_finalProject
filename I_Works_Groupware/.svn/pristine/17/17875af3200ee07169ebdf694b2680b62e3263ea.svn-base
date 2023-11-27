@@ -1,0 +1,110 @@
+package kr.or.ddit.service.impl;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mapper.FileMapper;
+import kr.or.ddit.service.IFileService;
+import kr.or.ddit.vo.FolderVO;
+
+@Service
+public class FileServiceImpl implements IFileService {
+	
+	@Inject
+	private FileMapper mapper;
+	
+	private String UserNoFind() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		UserDetails userDetails = (UserDetails)principal;
+		String empNo = userDetails.getUsername();
+		return empNo;
+	}
+	
+	private List<String> FolderCreate(FolderVO folderVO, List<String> folderPathArray) {
+		System.out.println("재귀호출 들어옴");
+		if(folderVO.getFolderParent()==null) {
+			System.out.println("재귀호출 널");	
+			return folderPathArray;
+		} else {
+			String motherFolder = folderVO.getFolderParent();
+			FolderVO parentFolder = mapper.selectParentFolder(motherFolder);
+			// 코드가아닌 이름값을 집어넣어서 패스로 활용해야함.
+			folderPathArray.add(parentFolder.getFolderName());
+			FolderCreate(parentFolder, folderPathArray);
+			System.out.println("재귀호출 낫널");
+		}
+		return folderPathArray;
+	}
+	
+	@Override
+	public void insertIndFolder(FolderVO folderVO, 
+			HttpServletRequest req, HttpServletResponse resp) {
+		folderVO.setEmpNo(UserNoFind());
+		
+		// 중요!!.
+		// 현재 파라미터로 받은 값은 인서트가 안된 값이기 때문에 폴더코드가 없으므로
+		// 부모코드가 있을 경우, 부모코드에 대한 내용을 꼭 받아와서 로직이 처리될 수 있게해야한다.
+		List<String> folderPathArray = new ArrayList<String>();
+		folderPathArray.add(folderVO.getFolderName());
+		
+		if(folderVO.getFolderParent()==null) {
+			System.out.println("널");
+		} else {
+			System.out.println("낫널");
+			// 폴더부모의 이름값들의 array를 리턴받기 위한 재귀호출.
+			folderPathArray = FolderCreate(folderVO, folderPathArray);
+		}
+		
+		String addPath = "";
+		// for문 마이너스로 가야함.
+		// 재귀호출 메소드에서 자식 >> 부모형태로 array가 쌓이므로 추가시킬땐 역순으로.
+		for(int i = folderPathArray.size()-1; i >= 0; i--) {
+			addPath += "/"+folderPathArray.get(i);
+			System.out.println("i = "+i);
+		}
+		System.out.println(addPath);
+		
+		String path = req.getServletContext().getRealPath("/resources/file")+"/"+UserNoFind()+addPath;
+		System.out.println(path);
+		
+		File file = new File(path);
+		
+		if(!file.exists()) {
+			file.mkdirs();
+		}
+		
+		mapper.insertIndFolder(folderVO);
+	}
+
+	@Override
+	public List<FolderVO> selectIndFolder(FolderVO folderVO) {
+		folderVO.setEmpNo(UserNoFind());
+		
+		return mapper.selectIndFolder(folderVO);
+	}
+	
+	@Override
+	public List<FolderVO> selectChildFolder(FolderVO folderVO) {
+		return mapper.selectChildFolder(folderVO);
+	}
+
+	@Override
+	public FolderVO selectParentFolder(String motherFolder) {
+		return mapper.selectParentFolder(motherFolder);
+	}
+
+	@Override
+	public FolderVO selectMyselfFolder(FolderVO folderVO) {
+		return mapper.selectMyselfFolder(folderVO);
+	}
+
+}

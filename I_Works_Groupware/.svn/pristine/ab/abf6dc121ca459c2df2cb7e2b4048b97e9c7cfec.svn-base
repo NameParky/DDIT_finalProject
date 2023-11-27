@@ -1,0 +1,19 @@
+package kr.or.ddit.controller.files;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class depFileController {
+	
+	// 부서자료실로 이동
+		@RequestMapping(value="/depfiles.do", method=RequestMethod.GET)
+		public String DepartmentFiles(Model model) {
+			String fileBar = "EXIST";
+			model.addAttribute("fileBar", fileBar);
+			return "main/files/departmentFiles";
+		}
+
+}

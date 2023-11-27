@@ -1,0 +1,17 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class ChatMemberVO {
+	private String empNo;
+	private String crNo;
+	private int ccFirst;
+	private int ccEnd;
+	private int cmStatus;
+	private String crcmTitle;
+}

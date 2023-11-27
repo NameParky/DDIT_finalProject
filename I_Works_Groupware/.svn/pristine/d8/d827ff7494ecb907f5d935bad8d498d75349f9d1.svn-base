@@ -1,0 +1,25 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class BoardFreeVO {
+	public String frNo;
+	public String frTitle;
+	public String frContent;
+	public Date frDate;
+	// 조회수
+	public int frHit;
+	// 좋아요
+	public int frLike;
+	// 자유게시판 작성자
+	public String frWriterEmpNo;
+	// 자유 게시판 익명 구분
+	public String frAnonySe;
+}

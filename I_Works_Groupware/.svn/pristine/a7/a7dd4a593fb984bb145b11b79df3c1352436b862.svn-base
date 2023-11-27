@@ -1,0 +1,38 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class AttendVO {
+	@DateTimeFormat(pattern = "HH:mm")
+	private Date atDate;
+	private String empNo;
+	private Date atStart;
+	private Date atEnd;
+	private int atOvertime;
+	private String atType;
+	private String atResult;
+	private int atWeek;
+	// 한주 근무 내용 넣어줄 변수
+	private int atSum;
+	// 한주 연장은무 내용 넣어줄 변수
+	private int atOverSum;
+	// 한주 전체근무 내용 넣어줄 변수
+	private int overallSum;
+	// 년도정보와 달정보를 넣어줄 변수
+	private String yearMonth;
+	// 근무퍼센테이지를 구할때 사용할 시작시간의 '시간'단위를 받아낼 변수
+	private String diffHour;
+	// 근무퍼센테이지를 구할때 사용할 시작시간의 '시간'단위를 받아낼 변수
+	private String diffMinute;
+}

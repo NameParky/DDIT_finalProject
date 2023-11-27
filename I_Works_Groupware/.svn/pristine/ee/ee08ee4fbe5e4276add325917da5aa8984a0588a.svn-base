@@ -1,0 +1,11 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.RoomResVO;
+
+public interface RoomMapper {
+	public List<RoomResVO> selectRoomList(RoomResVO roomVO);
+	public int insertAsRent(RoomResVO roomVO);
+	public List<RoomResVO> myRoomRsvList(String empNo);
+}

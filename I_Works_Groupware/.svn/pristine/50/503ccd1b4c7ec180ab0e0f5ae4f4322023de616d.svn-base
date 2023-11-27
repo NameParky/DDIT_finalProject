@@ -1,0 +1,82 @@
+package kr.or.ddit.service.impl;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.mapper.BoardFileMapper;
+import kr.or.ddit.mapper.ClubBoardMapper;
+import kr.or.ddit.service.IClubBoardService;
+import kr.or.ddit.vo.ClubVO;
+import kr.or.ddit.vo.FileVO;
+
+@Service
+public class ClubBoardServiceImpl implements IClubBoardService{
+
+	@Resource(name="uploadPath")
+	private String resourcePath; // /resources/upload
+	
+	@Inject
+	private ClubBoardMapper mapper;
+	
+	@Inject
+	private BoardFileMapper fileMapper;
+	
+	@Override
+	public void createClub(ClubVO clubVO, MultipartFile file) throws IllegalStateException, IOException {
+		
+		// 동호회 테이블에 (파일 제외)정보 인서트
+		mapper.insertClub(clubVO);
+		
+		if(file != null) {
+			// 파일 업로드
+			String saveLocate = resourcePath.replace(File.separatorChar, '/')+"/club/cover";
+	//		String saveLocate = req.getServletContext().getRealPath("/resources/club/cover");
+			String fileSaveName = clubFileUpload(saveLocate, file);
+			
+			// 첨부파일 테이블에 정보 인서트
+			String fileNo = clubVO.getClubCd();
+			int fileSec = 1;
+			String fileOrgName = file.getOriginalFilename();
+			String fileSavePath = "/resources/upload/club/cover/"+fileSaveName;
+			long fileSize = file.getSize();
+			String fileMime = file.getContentType();
+			String fileType = fileOrgName.substring(fileOrgName.lastIndexOf(".")+1);
+			FileVO fileVO = new FileVO(fileNo, fileSec, fileOrgName, fileSaveName, fileSavePath, fileSize, fileMime, fileType);
+			fileMapper.insertFile(fileVO);
+			
+			// 동호회 테이블에 정보 업데이트(첨부파일)
+			clubVO.setClubPhoto(fileSavePath);
+			mapper.updateClub(clubVO);
+		}
+		
+	}
+	
+	public String clubFileUpload(String saveLocate, MultipartFile file) throws IllegalStateException, IOException {
+		String fileSaveName = UUID.randomUUID().toString()+"_"+file.getOriginalFilename().replaceAll(" ", "_");
+		
+		File folder = new File(saveLocate);
+		if(!folder.exists()) {
+			folder.mkdirs();
+		}
+		
+		// 첫번째 방법
+		File target = new File(saveLocate+"/"+fileSaveName);
+		file.transferTo(target); // 파일 복사
+		
+		// 두번째 방법
+//		File target2 = new File(saveLocate, fileSaveName);
+//		FileCopyUtils.copy(file.getBytes(), target2); // 파일 복사
+		
+		return fileSaveName;
+	}
+
+}

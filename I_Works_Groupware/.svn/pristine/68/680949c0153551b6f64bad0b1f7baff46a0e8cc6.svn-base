@@ -1,0 +1,32 @@
+package kr.or.ddit.service.impl;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.mapper.DocMapper;
+import kr.or.ddit.service.IDocService;
+import kr.or.ddit.vo.DocHistoryVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class DocServiceImpl implements IDocService {
+	
+	@Inject
+	DocMapper docMapper;
+	
+	@Override
+	public ServiceResult appDoc(DocHistoryVO docHistoryVO) {
+		ServiceResult result = null;
+		int status = docMapper.appDoc(docHistoryVO);
+		if(status > 0) {
+			result = ServiceResult.OK;
+		}else {
+			result = ServiceResult.FAILED;
+		}
+		return result;
+	}
+
+}

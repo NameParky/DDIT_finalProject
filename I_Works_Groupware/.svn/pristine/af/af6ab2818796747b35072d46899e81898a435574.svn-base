@@ -1,0 +1,51 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import kr.or.ddit.vo.FolderVO;
+
+public interface IFileService {
+	
+	/**
+	 * FolderVO를 파라미터로 받고,
+	 * 사번, 폴더이름, 폴더상위부모의 값을 받아
+	 * 폴더를 생성해주는 로직
+	 */
+	public void insertIndFolder(FolderVO folderVO, HttpServletRequest req, HttpServletResponse resp);
+	
+	/**
+	 * FolderVO를 파라미터로 받고,
+	 * 사번, 폴더부모의 값을 받아
+	 * 개인자료실의 폴더를 셀렉트 값을 리턴해주는 로직
+	 */
+	public FolderVO selectIndFolder(FolderVO folderVO);
+
+	/**
+	 * FolderVO를 파라미터로 받고,
+	 * 폴더부모값을 받아
+	 * 폴더부모값이 폴더코드인 폴더값을 리턴해주는 로직
+	 */
+	public FolderVO selectParentFolder(String motherFolder);
+	
+	/**
+	 * FolderVO를 파라미터로 받고,
+	 * 폴더코드를 받아
+	 * parma의 폴더코드를 부모폴더로 가지고있는 리스트를 리턴해주는 로직
+	 */
+	public List<FolderVO> selectChildFolder(FolderVO folderVO);
+	
+	/**
+	 * FolderVO를 파라미터로 받고,
+	 * 폴더코드값을 받아
+	 * 본인의 폴더값을 리턴해오는 로직
+	 */
+	public FolderVO selectMyselfFolder(FolderVO myself);
+
+	public void insertIndFile(FolderVO folderVO, HttpServletRequest req, HttpServletResponse resp);
+
+	
+
+}

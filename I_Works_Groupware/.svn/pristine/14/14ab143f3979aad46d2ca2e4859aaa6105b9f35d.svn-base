@@ -1,0 +1,19 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class AyannVO {
+	private Date ayannDt;
+	private String empNo;
+	private Date ayannCnt;
+	private int ayannRest;
+}

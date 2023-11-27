@@ -1,0 +1,72 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>반려문서</title>
+</head>
+<body>
+	<h2>반려문서</h2>
+	<br/>
+	<div class="card-body">
+		<div class="col-md-12">
+			<textarea id="ckeditor" name="" class="form-control" rows="14" readonly="readonly">
+				<!-- 양식명  --> 
+				<h1 style="text-align: center;">연차신청서</h1>
+				
+				<!-- 결재란 시작 -->
+				<div>
+					<table border="1" style="width: 400px; margin-right:130px; float: right; text-align: center; border-collapse: collapse; table-layout: fixed;">
+						<tbody>
+							<tr>
+								<td rowspan="4" style="width: 20px">결재란</td>
+							</tr>
+							<tr>
+								<td class="cke_table-faked-selection">이나은</td>
+								<td class="cke_table-faked-selection">김재용</td>
+								<td class="cke_table-faked-selection">문수빈</td>
+								<td class="cke_table-faked-selection">이종영</td>
+							</tr>
+							<tr style="height: 50px">
+								<td><img src="${pageContext.request.contextPath }/resources/assets/gw/IW_Logo.png"  style="height: 50px;"></td>
+								<td>사인</td>
+								<td>사인</td>
+								<td>사인</td>
+							</tr>
+							<tr>
+								<td>결재일</td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<!-- 결재란 끝 -->
+				<br><br><br><br>
+				
+			
+			</textarea>
+		</div>
+	</div>
+	<br>
+	
+	<button class="btn btn-outline-info me-1 mb-1" type="button" style="float: right;" id="retList">목록</button>
+</body>
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace("ckeditor");
+	CKEDITOR.config.width = "100%";
+	CKEDITOR.config.height = "500px";
+	
+	
+	var retList = $("#retList");
+	retList.on("click", function(){
+		location.href= "/draft/retdoc.do";
+	});
+	
+	
+});
+</script>
+</html>

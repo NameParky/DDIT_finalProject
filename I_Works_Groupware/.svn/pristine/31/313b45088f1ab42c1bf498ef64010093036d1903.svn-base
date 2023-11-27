@@ -1,0 +1,15 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import kr.or.ddit.vo.BoardNoticeVO;
+
+public interface IBoardNoticeService {
+	// 공지사항 조회
+	public List<BoardNoticeVO> noticeList();
+	// 공지사항 등록
+	public void insertNotice(BoardNoticeVO notice, HttpServletRequest req, HttpServletResponse res);
+}

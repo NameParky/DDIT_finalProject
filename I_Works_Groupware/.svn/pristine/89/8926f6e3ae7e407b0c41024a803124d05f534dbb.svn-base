@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.AssetMapper">
+
+	<select id="selectAssList" parameterType="assVO" resultType="assVO">
+		SELECT as_cd, as_se, as_name, as_loc FROM asset
+	</select>
+	
+	<select id="selectAsRentTodayList" parameterType="assVO" resultType="assVO">
+		SELECT 
+			asr_cd, as_cd, asr_date, asr_starttime, asr_endtime, asr_reason, emp_no
+		FROM asrent
+		WHERE asr_date BETWEEN TO_DATE(sysdate, 'YYYY-MM-DD') AND TO_DATE(sysdate, 'YYYY-MM-DD') + 1;
+	</select>
+	
+	<insert id="insertAsRent" parameterType="assVO">
+		INSERT INTO ASRENT (
+			ASR_CD, AS_CD, ASR_DATE, ASR_STARTTIME, ASR_ENDTIME, ASR_REASON, EMP_NO
+		) VALUES (
+			(SELECT NVL(MAX(TO_NUMBER(ASR_CD)), 0) + 1 FROM ASRENT), #{asCd}, sysdate, #{asrStarttime}, #{asrEndtime}, #{asrReason}, #{empNo}
+		)
+	</insert>
+	
+	<select id="myAssRsvList" parameterType="string" resultType="assVO">
+		SELECT
+			asr_cd, asset.as_se, asset.as_cd, asr_date, asr_starttime, asr_endtime, asr_reason, emp_no, asset.as_name
+		FROM
+			asrent
+			INNER JOIN asset on asrent.as_cd = asset.as_cd
+		WHERE
+			emp_no = #{empNo}
+		ORDER By asr_date desc
+	</select>
+</mapper>

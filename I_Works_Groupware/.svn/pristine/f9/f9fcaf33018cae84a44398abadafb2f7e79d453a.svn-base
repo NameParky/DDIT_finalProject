@@ -1,0 +1,464 @@
+package kr.or.ddit.controller;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.security.Principal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang.StringUtils; // lang3말고 그냥 lang로 해도 괜찮은건가...?
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.service.ITaskService;
+import kr.or.ddit.vo.PaginationInfoVO;
+import kr.or.ddit.vo.TaskVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class TaskController {
+
+	@Inject
+	private ITaskService taskService;
+	/**
+	 * Task - 업무
+	 * @param currentPage
+	 * @param searchType
+	 * @param searchWord
+	 * @param req
+	 * @param model
+	 * @param principal
+	 * @return
+	 */
+	
+//	@RequestMapping(value = "/search", method = RequestMethod.GET)
+//	public String boardSearch(String keyword, Model model) {
+//		model.addAttribute("keyword", keyword);
+//		return "task/search";
+//	}
+	
+	// 업무 목록 가져오는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/task.do")
+	public String taskList(
+			@RequestParam(name="page", required = false, defaultValue = "1") int currentPage,
+			@RequestParam(required = false, defaultValue = "title") String searchType,
+			@RequestParam(required = false) String searchWord,
+	        HttpServletRequest req,
+	        Model model, Principal principal
+	) {
+	    String empNo = principal.getName();
+	    log.info("세션 아이디 : " + empNo);
+	   
+	    // taskVO에 empNo를 설정합니다.
+	    TaskVO taskVO = new TaskVO();
+	    taskVO.setEmpNo(empNo);
+
+	    
+	    // 페이징
+	    // 페이징 정보를 담고 관리할 PaginationInfoVO 객체를 생성합니다. TaskVO를 사용하여 데이터를 페이징할 것을 지정합니다.
+	    PaginationInfoVO<TaskVO> pagingVO = new PaginationInfoVO<TaskVO>();
+	    pagingVO.setEmpNo(empNo);
+	    
+	    
+	    // 검색이 이뤄지면 아래가 실행됨
+ 		if(StringUtils.isNotBlank(searchWord)) {
+ 			pagingVO.setSearchType(searchType);
+ 			pagingVO.setSearchWord(searchWord);
+ 			model.addAttribute("searchType", searchType);
+ 			model.addAttribute("searchWord", searchWord);
+ 		}
+	    
+ 		// 현재 페이지 번호를 설정
+ 		pagingVO.setCurrentPage(currentPage);	// startRow, endRow, startPage, endPage가 결정
+ 		// 총 게시글 수 가져오기
+		int totalRecord = taskService.taskCount(pagingVO);	
+		
+		// 페이징 정보를 사용해 게시글 목록을 데이터베이스에서 가져옴
+		pagingVO.setTotalRecord(totalRecord);	// totalPage 결정
+		// 페이징 정보를 사용해 게시글 목록을 데이터베이스에서 가져옴
+		List<TaskVO> taskList = taskService.selectTaskListPaging(pagingVO); // pagingVO를 이용해 데이터 가져오기
+		log.info("taskList : {}", taskList);
+		// 페이징 정보 객체에 게시글 목록을 설정
+		pagingVO.setDataList(taskList);
+		
+		model.addAttribute("pagingVO", pagingVO);
+		// 페이징 끝
+		
+	    // taskService를 통해 taskList를 가져옵니다.
+//	    List<TaskVO> taskList = taskService.selectTaskList(taskVO);
+	    
+	    
+	    // 모델에 taskList를 추가합니다.
+//	    model.addAttribute("taskList", taskList);
+		model.addAttribute("taskBar", "taskBar");
+	    return "main/task/task";
+	}
+
+	// 업무 작성 폼 페이지로 이동하는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/taskform.do")
+	public String taskForm() {
+		return "main/task/taskForm";
+	}
+	
+	// 업무를 실제로 추가하는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/taskinsert.do", method = RequestMethod.POST)
+	public String taskInsert(
+			RedirectAttributes ra, 
+			TaskVO taskVO,
+	        Model model, Principal principal
+			) {
+		String goPage = "";
+		String taskempList = "업무";
+//		Map<String, String> errors = new HashMap<String, String>(); // 에러 메시지를 저장하는 맵
+		
+		// 로그인 한 사용자 사원번호(아이디) 가져오기
+		String empNo = principal.getName();
+		// 업무 작성자로 사용자명을 설정
+	    taskVO.setEmpNo(empNo);
+	    
+		// 업무를 서비스를 통해 db에 추가
+		ServiceResult result = taskService.insertTask(taskVO);
+//		ServiceResult result2 = taskService.insertTeamEmp(taskCd, teamEmpList);
+		
+		log.info("teamEmpList : {}", taskVO.getTeamEmpList());
+		ServiceResult result2 = taskService.insertTeamEmp(taskVO);
+		log.info("생성된 taskCd : {}", taskVO.getTaskCd());
+		
+		if(result.equals(ServiceResult.OK) && result2.equals(ServiceResult.OK)) {
+			ra.addFlashAttribute("message", "업무 생성에 성공했습니다.");
+
+			if(taskVO.getTeamEmpList() !=null ) {
+				List<String> empNoList = taskVO.getTeamEmpList();
+				for(int i = 0; i < empNoList.size(); i++) {
+					taskempList += ","+empNoList.get(i);
+					// 업무,1234,1234,1234
+					taskempList += ","+empNoList.get(i);
+					
+				}
+				ra.addFlashAttribute("taskempList", taskempList);
+			}
+			
+			goPage = "redirect:/taskdetail.do?taskCd=" + taskVO.getTaskCd();
+
+		}else {
+			model.addAttribute("taskVO", taskVO);
+			ra.addFlashAttribute("message", "업무 생성에 실패했습니다.");
+			goPage = "redirect:/task.do";
+		}
+		
+		return goPage;
+	}
+	
+	// 업무를 삭제하는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/taskdelete.do", method = RequestMethod.GET)
+	public String deleteTask(RedirectAttributes ra, String taskCd, Model model) {
+		String goPage = "";
+		ServiceResult result = taskService.deleteTask(taskCd);
+		if(result.equals(ServiceResult.OK)) {
+			ra.addFlashAttribute("message", "업무 삭제에 성공했습니다.");
+			goPage = "redirect:/task.do";
+		}else {
+			ra.addFlashAttribute("message", "업무 삭제에 실패했습니다.");
+			goPage = "main/task/task";
+		}
+		return goPage;
+	}
+	
+	// 업무를 삭제하는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/tkdelete.do", method = RequestMethod.POST)
+	public String deleteTaskdet(
+			RedirectAttributes ra, String taskCd, String tdCd, Model model, String tkdflag) {
+		String goPage = "";
+		ServiceResult result = taskService.deleteTd(tdCd);
+		if(result.equals(ServiceResult.OK)) {
+			goPage = "redirect:/taskdetail.do?taskCd=" + taskCd;
+			ra.addFlashAttribute("message", "업무 삭제에 성공했습니다.");
+			if(tkdflag != null) { // 세부업무목록에서 요청 들어오면
+				goPage = "redirect:/mytaskdetail.do";
+			}
+		}else {
+			model.addAttribute("status","u");
+			goPage = "main/task/task";
+		}
+		return goPage;
+	}
+	
+	// 업무를 업데이트하기 위해 정보를 가져오는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/updatetask.do", method = RequestMethod.GET)
+	public String updateTaskForm(String taskCd, Model model) {
+		TaskVO taskVO = taskService.selectTask(taskCd);
+		
+		// teamemplist추가한거
+		List<TaskVO> teamempList = taskService.selectTeamEmpList(taskVO);
+	    model.addAttribute("teamempList", teamempList);
+		log.info("teamempList : " + teamempList);
+		
+		// 세부업무 담당자가 아닌 팀원
+//		    List<TaskVO> noTdEmpList = taskService.selectNoTdEmpList(taskVO);
+//		    model.addAttribute("noTdEmpList", noTdEmpList);
+//		    log.info("noTdEmpList {} : " + noTdEmpList);
+
+	    // 세부업무 담당자(TESTD_EMP) + 세부업무 담당자가 아닌 팀원(NOTD_EMP)
+	    List<TaskVO> TdSepEmpList = taskService.TdSeparateEmpList(taskVO);
+	    model.addAttribute("TdSepEmpList", TdSepEmpList);
+	    log.info("TdSepEmpList {} : " + TdSepEmpList);
+		
+		model.addAttribute("taskVO", taskVO);
+		
+		return "main/task/taskUpdate";
+	}
+	
+	// 업무를 수정하는 메서드(팀원 삭제 부분 알러트 안 뜸!!!!!)
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/updatetask.do", method = RequestMethod.POST)
+	public String updateTask(HttpServletRequest req, RedirectAttributes redirectAttributes, Model model, TaskVO taskVO) {
+	    String goPage = "";
+	    ServiceResult result = taskService.updateTask(taskVO);
+
+	    String delEmpList = req.getParameter("delEmpList");
+	    log.info("delEmpList : " + delEmpList);
+	    
+	    try {
+	    	ServiceResult deletedTeamMembers = null; // 먼저 변수를 선언하고 초기화
+	        if (delEmpList != null) {
+	            // 팀원 삭제
+	            deletedTeamMembers = taskService.deletedTeamMembers(taskVO);
+	        }
+	        // 팀원 추가
+	        ServiceResult insertTdTeamEmp = taskService.insertTdTeamEmp(taskVO);
+
+	        if ((result.equals(ServiceResult.OK)) && (insertTdTeamEmp.equals(ServiceResult.OK))) {
+	            goPage = "redirect:/taskdetail.do?taskCd=" + taskVO.getTaskCd();
+	            redirectAttributes.addFlashAttribute("message", "업무 수정에 성공했습니다.");
+	        } else {
+	            redirectAttributes.addFlashAttribute("message", "업무 수정에 실패했습니다.");
+	            goPage = "main/task/task";
+	        }
+	    } catch (Exception e) {
+	        model.addAttribute("message", "업무 수정 폼에서의 팀원 삭제에 실패했습니다.");
+	        return "redirect:/task.do";
+	    }
+
+	    return goPage;
+	}
+
+	
+	/**
+	 * TaskDetail - 세부업무
+	 * @param taskCd
+	 * @param model
+	 * @param principal
+	 * @return
+	 */
+	// 업무 + 세부업무 가져오는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/taskdetail.do", method = RequestMethod.GET)
+	public String taskDetail(String taskCd, Model model, Principal principal) {
+		TaskVO taskVO = taskService.selectTask(taskCd);
+//		log.info("TASK_CD: " + taskVO.getTaskCd());
+//		log.info("TASK_TITLE: " + taskVO.getTaskTitle());
+
+		
+		String empNo = principal.getName();
+	    log.info("세션 아이디 : " + empNo);
+	    taskVO.setEmpNo(empNo);
+	    model.addAttribute("loginId", empNo);
+	    
+		// taskService를 통해 taskList를 가져옵니다.
+	    List<TaskVO> taskdetList = taskService.selectDetTaskList(taskVO);
+	    // 모델에 taskList를 추가합니다.
+	    model.addAttribute("taskdetList", taskdetList);
+
+	    List<TaskVO> teamempList = taskService.selectTeamEmpList(taskVO);
+	    model.addAttribute("teamempList", teamempList);
+	    log.info("teamempList : " + teamempList);
+	    
+	    
+		model.addAttribute("taskVO", taskVO);
+		return "main/task/taskDetail";
+	}
+	
+   // 업무리스트 ajax
+   @ResponseBody
+   @GetMapping("/tasklistajax.do")
+   public TaskVO taskajax(String taskCd) {
+	  TaskVO taskVO = taskService.selectTask(taskCd);
+//      List<TaskVO> taskList = taskService.selectTaskList(taskVO);
+      return taskVO;
+   }
+
+	// 세부업무 인서트 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/taskdetinsert.do", method = RequestMethod.POST)
+	public String taskdetInsert(
+			String taskCd,
+			TaskVO taskVO,
+			Model model,
+			Principal principal
+			) {
+		log.info("taskCd : {}", taskCd);
+		
+		// 업무를 서비스를 통해 db에 추가
+		taskService.insertdetTask(taskVO);
+		return "redirect:/taskdetail.do?taskCd=" + taskCd;
+	}
+	
+	// 세부업무 상태를 y(완료)로 변경하는 메서드 
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/tkturny.do", method = RequestMethod.POST)
+	public String turnYChk(String taskCd, String tdCd, Model model, TaskVO taskVO, String tkdflag) {
+		log.info("taskCd : ", taskCd);
+		log.info("tdCd : ", tdCd);
+		// 아래꺼 실행시키면 주소가 http://localhost/taskdetail.do?taskCd=1&tdCd=4이런 식으로 taskcd뒤에 tdcd가 붙음
+//		taskService.turnYChk(tdCd);
+//		model.addAttribute("tdCd",tdCd);
+		
+		String goPage = "";
+		ServiceResult result = taskService.turnYChk(tdCd);
+		if(result.equals(ServiceResult.OK)) {
+			goPage = "redirect:/taskdetail.do?taskCd=" + taskCd;
+			if(tkdflag != null) { // 세부업무목록에서 요청 들어오면
+				goPage = "redirect:/mytaskdetail.do";
+			}
+		}else {
+			model.addAttribute("status","u");
+			goPage = "main/task/task";
+		}
+//		model.addAttribute("taskVO", taskVO);
+		return goPage;
+	}
+
+	// 세부업무 상태를 n(미완료)로 변경하는 메서드 
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/tkturnn.do", method = RequestMethod.POST)
+	public String turnNChk(String taskCd, String tdCd, Model model, TaskVO taskVO, String tkdflag) {
+//		taskService.turnYChk(tdCd);
+//		model.addAttribute("tdCd",tdCd);
+		
+		String goPage = "";
+		ServiceResult result = taskService.turnNChk(tdCd);
+		if(result.equals(ServiceResult.OK)) {
+			goPage = "redirect:/taskdetail.do?taskCd=" + taskCd;
+			if(tkdflag != null) { // 세부업무목록에서 요청 들어오면
+				goPage = "redirect:/mytaskdetail.do";
+			}
+		}else {
+			model.addAttribute("status","u");
+			goPage = "main/task/task";
+		}
+		return goPage;
+	}
+	
+	// 세부업무를 수정하는 메서드
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/tkdetailupdate.do", method = RequestMethod.POST)
+	public String updateChk(RedirectAttributes redirectAttributes, String taskCd, String tdCd, Model model, TaskVO taskVO, String tkdflag) {
+		String goPage = "";
+
+		
+		// taskService를 통해 taskList를 가져옵니다.
+	    List<TaskVO> taskdetList = taskService.selectDetTaskList(taskVO);
+	    // 모델에 taskList를 추가합니다.
+	    model.addAttribute("taskdetList", taskdetList);
+	    
+		List<TaskVO> teamempList = taskService.selectTeamEmpList(taskVO);
+	    model.addAttribute("teamempList", teamempList);
+	    log.info("teamempList : " + teamempList);
+		
+	    
+	    
+		ServiceResult result = taskService.updateTd(taskVO);
+		redirectAttributes.addFlashAttribute("contTdcd", tdCd);
+		if(result.equals(ServiceResult.OK)) {
+			redirectAttributes.addFlashAttribute("message", "세부업무 수정에 성공했습니다.");
+			goPage = "redirect:/taskdetail.do?taskCd=" + taskVO.getTaskCd();
+			if(tkdflag != null) { // 세부업무목록에서 요청 들어오면
+				goPage = "redirect:/mytaskdetail.do";
+			}
+		}else {
+			redirectAttributes.addFlashAttribute("message", "세부업무 수정에 실패했습니다.");
+			goPage = "main/task/task";
+		}
+		return goPage;
+		
+	}
+	
+	
+	
+	/**
+	 * GanttChart - 간트차트
+	 * @return
+	 */
+	// 간트차트 진행하기
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')")
+	@RequestMapping(value="/taskgantt.do", method = RequestMethod.GET)
+	public String taskGantt(String taskCd, Model model, Principal principal) {
+		TaskVO taskVO = taskService.selectTask(taskCd);
+		
+		// taskService를 통해 taskList를 가져옵니다.
+//	    List<TaskVO> taskdetList = taskService.selectDetTaskList(taskVO);
+	    // 모델에 taskList를 추가합니다.
+//	    model.addAttribute("taskdetList", taskdetList);
+
+//	    List<TaskVO> teamempList = taskService.selectTeamEmpList(taskVO);
+//	    model.addAttribute("teamempList", teamempList);
+//	    log.info("teamempList : " + teamempList);
+	    
+	    
+		model.addAttribute("taskVO", taskVO);
+		return "main/task/taskGantt";
+	}
+	// 세부업무리스트 ajax로 테이블 그리는 메서드
+   @ResponseBody
+   @GetMapping("/taskganttajax.do")
+   public List<TaskVO> taskdetajax(String taskCd) {
+	  TaskVO taskVO = taskService.selectTask(taskCd);
+      List<TaskVO> taskdetList = taskService.selectDetTaskList(taskVO);
+      return taskdetList;
+   }
+   
+   /**
+    * 세부업무목록 페이지
+    * @param principal
+    * @param model
+    * @return
+    */
+   @GetMapping("/mytaskdetail.do")
+   public String myTaskDetail(Principal principal, Model model) {
+	   List<TaskVO> myTkDetailList = taskService.selectMyTkDetailList(principal.getName());
+	   
+	   model.addAttribute("myTkDetailList", myTkDetailList);
+	   model.addAttribute("taskBar", "taskBar");
+	   return "main/task/myTaskDetail";
+   }
+}

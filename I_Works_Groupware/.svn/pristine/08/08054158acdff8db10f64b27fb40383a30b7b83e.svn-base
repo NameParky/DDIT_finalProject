@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.DocMapper">
+	<!-- 증명서 신청 내역 가져오기 -->
+	<select id="selectDocHistory" parameterType="string" resultType="docHistoryVO">
+		 SELECT
+		    emp_no, doc_date, doc_se, doc_name, doc_cd
+		FROM
+		    dochistory
+		WHERE
+		 	emp_no = #{empNo}
+		AND 
+			doc_date >= TO_CHAR(SYSDATE-7,'YYYYMMDD')
+		ORDER BY doc_date desc
+	</select>
+	
+		
+	<insert id="appDoc" parameterType="docHistoryVO">
+		INSERT INTO dochistory (
+		    emp_no, doc_date , doc_se , doc_name, doc_cd
+		) VALUES (
+		    #{empNo}, sysdate, 'N', #{docName}, 'doc'||dochitory_seq.NEXTVAL
+		)
+	</insert>
+	
+	<update id="updateDocSe" parameterType="String">
+		update dochistory
+		set 
+			doc_se = 'Y'
+		where 
+			 doc_cd = #{docCd}
+	</update>
+	
+	<!-- 증명서 발급을 위해 증명서 정보 가져오기 -->
+	<select id="selectDoc" parameterType="string" resultType="docHistoryVO">
+		SELECT
+		    emp_no, doc_date, doc_se, doc_name, doc_cd
+		FROM
+		    dochistory
+		WHERE
+		 	doc_cd = #{docCd}
+	</select>
+	
+	<!-- 귀속월 급여명세서 가져오기 -->
+	<select id="selectPaystub" parameterType="salaryVO" resultType="salaryVO">
+		 SELECT
+		    sal_no, sal_gramt, sal_overtimeamt, sal_holidayamt, sal_ddcamt, sal_netamt, sal_actrsfdate, sal_belongmonth, emp_no
+		 FROM
+		    salarylist
+		 WHERE 
+		 	sal_no = #{salNo} and
+		 	emp_no = #{empNo}
+	</select>
+</mapper>

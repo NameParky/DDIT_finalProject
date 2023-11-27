@@ -1,0 +1,10 @@
+package kr.or.ddit.mapper;
+
+import kr.or.ddit.vo.FileVO;
+
+public interface BoardFileMapper {
+	// 첨부파일 입력
+	public void insertFile(FileVO file);
+	// 공지사항 파일 검색
+	public FileVO selectNoticefile(String fileNo);
+}

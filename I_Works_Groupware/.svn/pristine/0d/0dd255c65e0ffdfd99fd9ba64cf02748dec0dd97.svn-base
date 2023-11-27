@@ -1,0 +1,49 @@
+package kr.or.ddit.controller;
+
+import java.security.Principal;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.ServiceResult;
+import kr.or.ddit.service.ITodoService;
+import kr.or.ddit.vo.TodoListVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class TodoListController {
+	
+	@Inject
+	private ITodoService todoService;
+	
+	
+	@PostMapping("/registerTodo.do")
+	public String registerTodo (String todoContent, Principal principal, RedirectAttributes ra){
+		log.info("registerTodo() 실행...! 값 확인 : "+todoContent+" and "+ principal.getName());
+		
+		TodoListVO todoListVO = new TodoListVO();
+		todoListVO.setEmpNo(principal.getName());
+		todoListVO.setTodoContent(todoContent);
+		ServiceResult result = todoService.registerTodo(todoListVO);
+		// 어디로 쏴줘야 하나 무엇을 ??
+//		if(result.equals(ServiceResult.OK)) {
+//		}
+		
+		return "redirect:/";
+	}
+	
+	@ResponseBody
+	@PostMapping("/selectTodoList.do")
+	public List<TodoListVO> selectTodoList(Principal principal) {
+		List<TodoListVO> todoList = todoService.selectTodoList(principal.getName());
+		log.info("컨트롤러에서 todoList 조회 되는지 확인  : "+ todoList);
+		return todoList;
+	}
+}

@@ -1,0 +1,10 @@
+package kr.or.ddit.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.BoardNoticeVO;
+
+public interface IBoardNoticeService {
+	// 공지사항 조회
+	public List<BoardNoticeVO> noticeList();
+}

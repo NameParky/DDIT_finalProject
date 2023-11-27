@@ -1,0 +1,21 @@
+package kr.or.ddit.vo;
+
+import java.util.Date;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@ToString
+@NoArgsConstructor
+public class BoardFeventVO {
+	public String feNo;
+	public String feTitle;
+	public String feContent;
+	public Date feDate;
+	// 조회수
+	public int feHit;
+	// 글쓴이
+	public String feWriterEmpNo;
+}

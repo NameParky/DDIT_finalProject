@@ -1,0 +1,10 @@
+package kr.or.ddit.mapper;
+
+import kr.or.ddit.vo.ClubVO;
+
+public interface ClubBoardMapper {
+
+	public void insertClub(ClubVO clubVO);
+	public void updateClub(ClubVO clubVO);
+
+}

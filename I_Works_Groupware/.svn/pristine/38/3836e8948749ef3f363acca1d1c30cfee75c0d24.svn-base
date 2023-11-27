@@ -1,0 +1,98 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+
+<h2>&nbsp;나에게 메일 보내기</h2>
+	<div class="row g-lg-6 mb-8">
+		<div class="col-lg-auto">			
+			<div class="phoenix-offcanvas-backdrop d-lg-none"
+				data-phoenix-backdrop="data-phoenix-backdrop" style="top: 0;"></div>
+		</div>
+		 <div class="col-12">
+              <div class="card email-content">
+                <div class="card-body">
+                  <form class="d-flex flex-column h-100">
+                    <div class="row g-3 mb-2">
+                    
+                    
+                      <div class="col-12">
+                      	<div class="input-group mb-1">
+  							<input class="form-control" type="text" value="내사번" aria-label="Recipient's username" aria-describedby="basic-addon2" readonly />
+						</div>
+                      </div>
+
+                      
+                      <div class="col-12">
+                      	<div class="input-group mb-1">
+  							<input class="form-control" type="text" placeholder="참조할사람의 사번을 입력하세요" aria-label="Recipient's username" aria-describedby="basic-addon2" />
+  							<span class="input-group-text" id="refBtn" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#refModal">주소록찾기</span>
+						</div>
+                      </div>
+                      
+                      
+                      <div class="col-12">
+                      	<input class="form-control form-control" id="sizingInput" type="text" placeholder="제목을 입력해주세요." />
+                      </div>
+                      
+                      
+                      <div>
+                      	<textarea class="form-control" id="mailContent"
+										style="height: 1000px;"></textarea>
+                      </div>
+                      
+                      
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex">
+                        <label class="btn btn-link py-0 px-2 text-900 fs--1" for="emailAttachment"> <span class="fa-solid fa-paperclip"></span></label>
+                        <input class="d-none" id="emailAttachment" type="file" />
+                        <label class="btn btn-link py-0 px-2 text-900 fs--1" for="emailPhotos"><span class="fa-solid fa-image"></span></label>
+                        <input class="d-none" id="emailPhotos" type="file" accept="image/*" />
+                      </div>
+                      <div class="d-flex">
+                        <button class="btn btn-link text-900 fs--2 text-decoration-none">취소</button>
+                        <button class="btn btn-primary fs--2" type="submit">보내기<span class="fa-solid fa-paper-plane ms-1"></span></button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+	</div>
+
+<div class="modal fade" id="rcvModal" tabindex="-1" aria-labelledby="verticallyCenteredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="verticallyCenteredModalLabel">주소록검색</h5><button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-700 lh-lg mb-0">주소록이 들어가야할 자리 (주소록 처리 이후 ajax돌릴것)</p>
+      </div>
+      <div class="modal-footer"><button class="btn btn-primary" type="button">확인</button><button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">취소</button></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="refModal" tabindex="-1" aria-labelledby="verticallyCenteredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="verticallyCenteredModalLabel">주소록검색e</h5><button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-700 lh-lg mb-0">주소록이 들어가야할 자리 (주소록 처리 이후 ajax돌릴것)</p>
+      </div>
+      <div class="modal-footer"><button class="btn btn-primary" type="button">확인</button><button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">취소</button></div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace('mailContent', {height: 200});
+	
+	
+});
+</script>

@@ -1,0 +1,78 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>완료문서</title>
+</head>
+<body>
+<h2>완료 문서</h2>
+	<br/>
+		<table class="table table-hover" style="margin:0 auto; text-align: center;">
+		  <thead>
+		    <tr>
+		      <th scope="col">번호</th>
+		      <th scope="col">양식명</th>
+		      <th scope="col">기안일</th>
+		      <th scope="col">상태</th>
+		      <th scope="col">결재일</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr>
+		      <th scope="row">1</th>
+		      <td><a href="/draft/comdetail.do">연차신청서</a></td>
+		      <td>2023.09.30</td>
+		      <td><span class="badge badge-phoenix badge-phoenix-success">전결</span></td>
+		      <td>2023.10.01</td>
+		    </tr>
+		    <tr>
+		      <th scope="row">2</th>
+		      <td>연차신청서</td>
+		      <td></td>
+		      <td><span class="badge badge-phoenix badge-phoenix-success">결재</span></td>
+		      <td></td>
+		    </tr>
+		    <tr>
+		      <th scope="row">3</th>
+		      <td>연차신청서</td>
+		      <td></td>
+		      <td></td>
+		      <td></td>
+		    </tr>
+		  </tbody>
+		</table> 
+		
+		<!-- 페이징 -->
+		<nav aria-label="Page navigation example">
+		  <ul class="pagination mb-0 justify-content-center">
+		    <li class="page-item">
+		      <a class="page-link" href="#">
+		        <span class="fas fa-chevron-left"> </span>
+		      </a>
+		    </li>
+		    <li class="page-item">
+		      <a class="page-link" href="#">1</a>
+		    </li>
+		    <li class="page-item">
+		      <a class="page-link" href="#">2</a>
+		    </li>
+		    <li class="page-item">
+		      <a class="page-link" href="#">3</a>
+		    </li>
+		    <li class="page-item active" aria-current="page">
+		      <a class="page-link" href="#">4</a>
+		    </li>
+		    <li class="page-item">
+		      <a class="page-link" href="#">5</a>
+		    </li>
+		    <li class="page-item">
+		      <a class="page-link" href="#"> 
+		      	<span class="fas fa-chevron-right"></span>
+		      </a>
+		    </li>
+		  </ul>
+		</nav>
+		<!-- 페이징 -->
+</body>
+</html>

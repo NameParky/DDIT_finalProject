@@ -1,0 +1,20 @@
+package kr.or.ddit.mapper;
+
+import java.util.List;
+
+import kr.or.ddit.vo.ChatRoomDTLVO;
+import kr.or.ddit.vo.ChatVO;
+import kr.or.ddit.vo.chatSelectResultVO;
+
+public interface ChatMapper {
+	// 채팅 메세지 데이터 등록
+	public void insert(ChatVO chat);
+	// 채팅방 멤버수 조회
+	public int selectCRMemNum(ChatVO chat);
+	// 채팅방 조회
+	public List<chatSelectResultVO> selectChatRoom(String chatuser);
+	// 채팅 유저 조회
+	public List<chatSelectResultVO> selectChatUser(String chatuser);
+	// 채팅방 상세보기
+	public List<ChatRoomDTLVO> selectRoomDetail(ChatVO chat);
+}

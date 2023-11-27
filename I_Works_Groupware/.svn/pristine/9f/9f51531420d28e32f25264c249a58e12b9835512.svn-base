@@ -1,0 +1,109 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+
+
+
+	<div class="pb-5">
+		<div class="row g-4">
+			<div class="col-12 col-xxl-6">
+				<div></div>
+			</div>
+
+		</div>
+	</div>
+	<div
+		class="mx-n4 px-4 mx-lg-n6 px-lg-6 bg-white pt-7">
+		<div
+			data-list='{"valueNames":["product","customer","rating","review","time"],"page":6}'>
+
+
+			<div>
+				<div class="container-fluid">
+					<div class="card" style="">
+						<div class="row d-flex justify-content-center text-center pt-7">
+							<div class="col-4"></div>
+							<div class="col-4">
+								<h3>[공지] 공지사항 첫 게실글</h3>
+							</div>
+							<div class="col-4"></div>
+						</div>
+						
+						<div class="row text-center pb-5">
+							<div class="col-4"></div>
+							<div class="col-4">
+								<h6 class="fw-normal">관리자 / 2023-01-21</h6>
+							</div>
+							<div class="col-4"></div>
+						</div>
+						
+						<div class="row">
+							<div class="col-12">
+								<hr/>
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="col-1"></div>
+							<div class="col-6 pt-15">
+								<p>
+									공지사항 첫번째 글입니다.<p>
+									최종프로젝트 화이팅입니다.<p>
+									화면정의서 열심히 해봐요<p>
+									그래도 첫글인세 많이 써야겠죠<p>
+									뭘쓸까 고민하다가 그냥 복붙할게요<p>
+									뭘쓸까 고민하다가 그냥 복붙할게요.
+								</p>
+							</div>
+							<div class="col-4">
+								<div class="row">
+									<div class="col-12 pb-7">
+										<h6 class="fw-normal text-end">첨부파일 : <a href="#">공지사항 첨부파일.png</a></h6>
+									</div>
+									<div class="col-12 d-flex justify-content-end">
+										<img src="${pageContext.request.contextPath }/resources/assets/img/team/40x40/30.webp" style="width:100%; height:100%;">
+									</div>
+								</div>
+							</div>
+						</div>
+						
+
+						
+					</div>
+				</div>
+
+
+			</div>
+			<div class="row align-items-center py-1">
+				<div class="pagination d-none"></div>
+				<div class="col d-flex fs--1">
+					<!-- 하단부 -->
+
+				</div>
+			</div>
+			<div class="row" style="margin: 15px 0px 20px 0px;">
+				<div class="col-9"></div>
+				<div class="col-3 text-end">
+					<!-- 작성자일떄 -->
+					<button class="btn btn-primary me-1 mb-1" type="button">수정</button>
+					<button class="btn btn-primary me-1 mb-1" type="button">삭제</button>
+					<!-- 작성자일떄 끝 -->
+					<button class="btn btn-primary me-1 mb-1" type="button" id="listBtn">목록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script type="text/javascript">
+$(function(){
+	CKEDITOR.replace('exampleTextarea'
+            , {height: 500                                                  
+            });
+	
+	var listBtn = $("#listBtn");
+	
+	listBtn.on('click', function(){
+		location.href="/noticemain.do";
+	});
+});
+</script>
